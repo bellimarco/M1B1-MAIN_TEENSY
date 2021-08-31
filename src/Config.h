@@ -80,7 +80,7 @@ bool Log_ = true;   //controllable variable to turn on off the serial log
 
 
 #include <Globals.h>
-#include <GcodeV2.h>
+#include <Gcode.h>
 #include <MotionBlock.h>
 
 #ifdef USE_I2C

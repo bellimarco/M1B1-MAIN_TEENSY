@@ -177,7 +177,7 @@ void vTask_Actuating(void* arg) {
 
         //new codes in the first row of the GBuffer
         while(uxQueueMessagesWaiting(GtoActuating)>0){
-            GTarget* Targ;
+            GTarget* Targ = GTARGET_NOTDEF;
             if(xQueueReceive(GtoActuating,Targ,10/portTICK_PERIOD_MS) == pdTRUE){
                 
                 TargetQueue[Targ->gcode] = Targ;
@@ -214,7 +214,7 @@ void vTask_Actuating(void* arg) {
         #endif
 
 
-        vTaskDelay(ActuatingDelay/portTICK_PERIOD_MS);
+        xSemaphoreTake(Task_Actuating_Semaphore,ActuatingDelay/portTICK_PERIOD_MS);
     }
   
 }

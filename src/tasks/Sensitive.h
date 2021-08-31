@@ -68,7 +68,7 @@ void vTask_Sensitive(void* arg) {
         // LogPrint(ENC_RADS[2]); LogPrint("\t"); LogPrint(ENC_RADS[3]); LogPrint("\n");
 
 
-        vTaskDelay(SensitiveDelay/portTICK_PERIOD_MS);
+        xSemaphoreTake(Task_Sensitive_Semaphore,SensitiveDelay/portTICK_PERIOD_MS);
     }
 
     

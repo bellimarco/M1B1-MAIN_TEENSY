@@ -147,7 +147,7 @@ void vTask_SerialComm(void* arg) {
 
     //pop from the GBuffer targets that are executing
     while(uxQueueMessagesWaiting(GExecuting)>0){
-        GTarget* Targ;
+        GTarget* Targ = GTARGET_NOTDEF;
         if(xQueueReceive(GExecuting,Targ,10/portTICK_PERIOD_MS) == pdTRUE){
 
             if(GBuffer[Targ->gcode][0] == Targ){
@@ -199,7 +199,7 @@ void vTask_SerialComm(void* arg) {
     }
 
     while(uxQueueMessagesWaiting(GExecuted)>0){
-        GTarget* Targ;
+        GTarget* Targ = GTARGET_NOTDEF;
         if(xQueueReceive(GExecuted,Targ,10/portTICK_PERIOD_MS) == pdTRUE){
 
             #ifdef Log_GcodeMonitoring
@@ -218,7 +218,7 @@ void vTask_SerialComm(void* arg) {
 
 
 
-    vTaskDelay(SerialCommDelay/portTICK_PERIOD_MS);
+    xSemaphoreTake(Task_SerialComm_Semaphore,SerialCommDelay/portTICK_PERIOD_MS);
   }
 }
 
