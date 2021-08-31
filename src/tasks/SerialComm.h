@@ -148,70 +148,72 @@ void vTask_SerialComm(void* arg) {
     //pop from the GBuffer targets that are executing
     while(uxQueueMessagesWaiting(GExecuting)>0){
         GTarget* Targ;
-        xQueueReceive(GExecuting,Targ,500/portTICK_PERIOD_MS);
+        if(xQueueReceive(GExecuting,Targ,10/portTICK_PERIOD_MS) == pdTRUE){
 
-        if(GBuffer[Targ->gcode][0] == Targ){
-            //if target is indeed in the first row of the buffer
-            //erase the code from the first row
-            GBuffer[Targ->gcode][0] = GTARGET_NOTDEF;
+            if(GBuffer[Targ->gcode][0] == Targ){
+                //if target is indeed in the first row of the buffer
+                //erase the code from the first row
+                GBuffer[Targ->gcode][0] = GTARGET_NOTDEF;
 
-            //check starting from the second row, if codes can be shifted downwards
-            for(uint8_t j=1; j<GBufferSize; j++){
-                //check if any codes in this row, are compatible with the row below
-                for(uint8_t i=0; i<GcodesSize; i++){
-                    if(GBuffer[i][j]!=GTARGET_NOTDEF){
-                        
-                        bool canshift=true;
-                        for(uint8_t i2=0; i2<GcodesSize; i2++){
-                            if(GBuffer[i2][j-1]!=GTARGET_NOTDEF && !GCompatibility[i2][i]){
-                                canshift = false; break;
+                //check starting from the second row, if codes can be shifted downwards
+                for(uint8_t j=1; j<GBufferSize; j++){
+                    //check if any codes in this row, are compatible with the row below
+                    for(uint8_t i=0; i<GcodesSize; i++){
+                        if(GBuffer[i][j]!=GTARGET_NOTDEF){
+                            
+                            bool canshift=true;
+                            for(uint8_t i2=0; i2<GcodesSize; i2++){
+                                if(GBuffer[i2][j-1]!=GTARGET_NOTDEF && !GCompatibility[i2][i]){
+                                    canshift = false; break;
+                                }
+                            }
+                            //if is compatible with row below, shift the code
+                            if(canshift){
+                                GBuffer[i][j-1] = GBuffer[i][j];
+                                GBuffer[i][j]=GTARGET_NOTDEF;
+                                //if it has been shifted from the 2nd to the 1st row send it
+                                if(j==1){  GSendToTask(GBuffer[i][j-1]); }
                             }
                         }
-                        //if is compatible with row below, shift the code
-                        if(canshift){
-                            GBuffer[i][j-1] = GBuffer[i][j];
-                            GBuffer[i][j]=GTARGET_NOTDEF;
-                            //if it has been shifted from the 2nd to the 1st row send it
-                            if(j==1){  GSendToTask(GBuffer[i][j-1]); }
+                    }
+                }
+                //if GBuffer full flag is true, check again if the buffer has space now
+                if(GBufferFull){
+                    GBufferFull = false;
+                    for(uint8_t i=0; i<GcodesSize; i++){
+                        if(GBuffer[i][GBufferSize-GBufferFull_rowslimit] != GTARGET_NOTDEF){
+                            GBufferFull = true;
+                            break;
                         }
                     }
                 }
-            }
-            //if GBuffer full flag is true, check again if the buffer has space now
-            if(GBufferFull){
-                GBufferFull = false;
-                for(uint8_t i=0; i<GcodesSize; i++){
-                    if(GBuffer[i][GBufferSize-GBufferFull_rowslimit] != GTARGET_NOTDEF){
-                        GBufferFull = true;
-                        break;
-                    }
-                }
-            }
 
-            #ifdef Log_GcodeMonitoring
-            LogPrintln("SerialComm/ Executing: "+Targ->gcode_string);
-            #endif
-        }else{
-            //if the target received in the queue isn't at its place in the first row
+                #ifdef Log_GcodeMonitoring
+                LogPrintln("SerialComm/ Executing: "+Targ->gcode_string);
+                #endif
+            }else{
+                //if the target received in the queue isn't at its place in the first row
 
+            }
         }
     }
 
     while(uxQueueMessagesWaiting(GExecuted)>0){
         GTarget* Targ;
-        xQueueReceive(GExecuted,Targ,500/portTICK_PERIOD_MS);
+        if(xQueueReceive(GExecuted,Targ,10/portTICK_PERIOD_MS) == pdTRUE){
 
-        #ifdef Log_GcodeMonitoring
-        LogPrintln("SerialComm/ Executed: "+Targ->gcode_string);
-        #endif
-        
-        //relay to the esp the executed code
-        SerialGcode.print("e/");
-        SerialGcode.println(Targ->gcode_string);
+            #ifdef Log_GcodeMonitoring
+            LogPrintln("SerialComm/ Executed: "+Targ->gcode_string);
+            #endif
+            
+            //relay to the esp the executed code
+            SerialGcode.print("e/");
+            SerialGcode.println(Targ->gcode_string);
 
-        DisposeGTarget(Targ);
+            DisposeGTarget(Targ);
 
-        LogPrintln("disposed/ FREEMEMORY: "+String(freeMemory()));
+            LogPrintln("disposed/ FREEMEMORY: "+String(freeMemory()));
+        }
     }
 
 

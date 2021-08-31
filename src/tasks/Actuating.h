@@ -107,7 +107,7 @@ void ExecutedTarget(GTarget* t){
                 }
                 if(compatible){
                     //if Cspace available, set goals right now, otherwise loop will retry later
-                    if(xSemaphoreTake(WorldCspace_Mutex, 50/portTICK_PERIOD_MS)==pdTRUE){
+                    if(xSemaphoreTake(WorldCspace_Mutex, 10/portTICK_PERIOD_MS)==pdTRUE){
                         TargetQueue[j]->SetGoals(WorldCspace);
                         xSemaphoreGive(WorldCspace_Mutex);
                     }else{ ToSetTargetGoals = true; }
@@ -164,7 +164,7 @@ void vTask_Actuating(void* arg) {
 
         //if there are targets with their goals undefined
         if(ToSetTargetGoals){
-            if(xSemaphoreTake(WorldCspace_Mutex, 20/portTICK_PERIOD_MS)==pdTRUE){
+            if(xSemaphoreTake(WorldCspace_Mutex, 10/portTICK_PERIOD_MS) == pdTRUE){
                 for(byte i=0; i<GcodesSize; i++){
                     if(TargetsExecuting[i] != GTARGET_NOTDEF && TargetsExecuting[i]->goals == GTARGETGOALS_NOTDEF){
                         TargetsExecuting[i]->SetGoals(WorldCspace);
@@ -178,26 +178,27 @@ void vTask_Actuating(void* arg) {
         //new codes in the first row of the GBuffer
         while(uxQueueMessagesWaiting(GtoActuating)>0){
             GTarget* Targ;
-            xQueueReceive(GtoActuating,Targ,10/portTICK_PERIOD_MS);
-            
-            TargetQueue[Targ->gcode] = Targ;
+            if(xQueueReceive(GtoActuating,Targ,10/portTICK_PERIOD_MS) == pdTRUE){
+                
+                TargetQueue[Targ->gcode] = Targ;
 
-            //check compatibility with TargetsExecuting
-            bool compatible = true;
-            for(byte i=0; i<GcodesSize; i++){
-                if(TargetsExecuting[i]!=GTARGET_NOTDEF && !GCompatibility[Targ->gcode][i]){
-                    compatible = false;
-                    break;
+                //check compatibility with TargetsExecuting
+                bool compatible = true;
+                for(byte i=0; i<GcodesSize; i++){
+                    if(TargetsExecuting[i]!=GTARGET_NOTDEF && !GCompatibility[Targ->gcode][i]){
+                        compatible = false;
+                        break;
+                    }
                 }
-            }
 
-            if(compatible){
-                //if Cspace available, set goals right now, otherwise loop will retry later
-                if(xSemaphoreTake(WorldCspace_Mutex, 100/portTICK_PERIOD_MS)==pdTRUE){
-                    Targ->SetGoals(WorldCspace);
-                    xSemaphoreGive(WorldCspace_Mutex);
-                }else{ ToSetTargetGoals = true; }
-                ExecutingTarget(Targ);
+                if(compatible){
+                    //if Cspace available, set goals right now, otherwise loop will retry later
+                    if(xSemaphoreTake(WorldCspace_Mutex, 10/portTICK_PERIOD_MS)==pdTRUE){
+                        Targ->SetGoals(WorldCspace);
+                        xSemaphoreGive(WorldCspace_Mutex);
+                    }else{ ToSetTargetGoals = true; }
+                    ExecutingTarget(Targ);
+                }
             }
         }
         
