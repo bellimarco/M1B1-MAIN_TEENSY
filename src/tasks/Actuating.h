@@ -72,6 +72,24 @@ void SendMotorControl(MotorControlStruct C){
 
 
 
+//queue for sending to the actuating task newly arrived gtargets on the lowest row in the gbuffer
+const uint8_t GtoActuatingLength = 8;
+QueueHandle_t GtoActuating = xQueueCreate(GtoActuatingLength,sizeof(GTarget*));
+
+//queue containing the GTargets that have entered the TargetsExecuting array in the actuating task
+//i.e. the targets that have to be popped from the lowest row in the gbuffer from SerialComm
+const uint8_t GExecutingLength = 8;
+QueueHandle_t GExecuting = xQueueCreate(GExecutingLength,sizeof(GTarget*));
+
+//queue where different tasks can store the gtargets they have executed
+//the serialcomm task then reads this queue and signals the esp that
+//  the given codes have been executed
+const uint8_t GExecutedLength = 8;
+QueueHandle_t GExecuted = xQueueCreate(GExecutedLength,sizeof(GTarget*));
+
+
+
+
 //move GTargets in first row of the GBuffer
 //pushed by GtoActuating, popped on compatibility with TargetsExecuting array
 GTarget* TargetQueue[GcodesSize];
@@ -161,6 +179,12 @@ void vTask_Actuating(void* arg) {
         presentT = micros();
         elapsedT = float(presentT - previousT);
         previousT = presentT;
+
+        if(BlockExecuting != MOTIONBLOCK_NOTDEF){
+            uint8_t s = BlockExecuting->Status(presentT, WorldCspace);
+
+            
+        }
 
         //if there are targets with their goals undefined
         if(ToSetTargetGoals){

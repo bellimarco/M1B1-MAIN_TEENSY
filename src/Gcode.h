@@ -227,23 +227,6 @@ GTarget* GBuffer[GcodesSize][GBufferSize];
 
 
 
-//queue for sending to the actuating task newly arrived gtargets on the lowest row in the gbuffer
-#define GtoActuatingLength 8
-QueueHandle_t GtoActuating = xQueueCreate(GtoActuatingLength,sizeof(GTarget*));
-
-//queue containing the GTargets that have entered the TargetsExecuting array in the actuating task
-//i.e. the targets that have to be popped from the lowest row in the gbuffer from SerialComm
-#define GExecutingLength 8
-QueueHandle_t GExecuting = xQueueCreate(GExecutingLength,sizeof(GTarget*));
-
-//queue where different tasks can store the gtargets they have executed
-//the serialcomm task then reads this queue and signals the esp that
-//  the given codes have been executed
-#define GExecutedLength 8
-QueueHandle_t GExecuted = xQueueCreate(GExecutedLength,sizeof(GTarget*));
-
-
-
 void GCodeSetup(){
     for(byte i=0; i<GcodesSize; i++){
         for(byte j=0; j<GBufferSize; j++){
