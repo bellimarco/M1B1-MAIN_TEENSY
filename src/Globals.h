@@ -23,7 +23,10 @@ struct MotorControlStruct{
     float val[MotorNumber];
     uint8_t mode[MotorNumber];
 };
-
+MotorControlStruct MOTORCONTROL_NOTDEF = MotorControlStruct{
+    {FLOATNOTDEF,FLOATNOTDEF,FLOATNOTDEF,FLOATNOTDEF},
+    {BYTENOTDEF,BYTENOTDEF,BYTENOTDEF,BYTENOTDEF}
+};
 
 //inter-teensy serial communication
 #define checkintMask 0b11111110
@@ -48,9 +51,9 @@ class Cspace{
     }
 };
 
-Cspace CSPACE_NOTDEF = Cspace();
+Cspace* CSPACE_NOTDEF = new Cspace();
 
-Cspace WorldCspace = Cspace();
+Cspace* WorldCspace = new Cspace();
 
 
 

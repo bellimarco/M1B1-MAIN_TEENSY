@@ -1,54 +1,4 @@
 
-//move GTargets in first row of the GBuffer
-//pushed by GtoActuating, popped on compatibility with TargetsExecuting array
-GTarget* TargetQueue[GcodesSize];
-//GTargets currently being executed by the actuating task
-//pushed on compatibility by TargetQueue array, popped on target completion
-GTarget* TargetsExecuting[GcodesSize];
-//flags if a target upon entering TargetsExecuting couldn't set its goals cause of unavailable Cspace
-//this causes the actuatingtask loop to try instead
-bool ToSetTargetGoals = false;
-
-void ExecutingTarget(GTarget* t){
-    //send to GExecuting, push to TargetsExecuting, pop from TargetQueue
-    if(xQueueSend(GExecuting,t,50/portTICK_PERIOD_MS)==pdTRUE){
-        TargetsExecuting[t->gcode] = t;
-        TargetQueue[t->gcode] = GTARGET_NOTDEF;
-    }
-}
-//called when the task has finished a target
-void ExecutedTarget(GTarget* t){
-    //send to GExecuted, pop from TargetsExecuting
-    if(xQueueSend(GExecuted,t,50/portTICK_PERIOD_MS)==pdTRUE){
-        TargetsExecuting[t->gcode] = GTARGET_NOTDEF;
-
-        //check compatibility of TargetQueue with TargetsExecuting
-        for(byte j=0; j<GcodesSize; j++){
-            if(TargetQueue[j] != GTARGET_NOTDEF){
-                bool compatible = true;
-                for(byte i=0; i<GcodesSize; i++){
-                    if(TargetsExecuting[i]!=GTARGET_NOTDEF && !GCompatibility[j][i]){
-                        compatible = false;
-                        break;
-                    }
-                }
-                if(compatible){
-                    //if Cspace available, set goals right now, otherwise loop will retry later
-                    if(xSemaphoreTake(WorldCspace_Mutex, 50/portTICK_PERIOD_MS)==pdTRUE){
-                        TargetQueue[j]->SetGoals();
-                        xSemaphoreGive(WorldCspace_Mutex);
-                    }else{ ToSetTargetGoals = true; }
-                    ExecutingTarget(TargetQueue[j]);
-                }
-            }
-        }
-    }
-}
-
-
-
-
-
 //send to teensies the motorcontrol variable
 void SendMotorControl(MotorControlStruct C){
     //!!!remember argument array must have length = MotorNumber
@@ -122,6 +72,64 @@ void SendMotorControl(MotorControlStruct C){
 
 
 
+//move GTargets in first row of the GBuffer
+//pushed by GtoActuating, popped on compatibility with TargetsExecuting array
+GTarget* TargetQueue[GcodesSize];
+//GTargets currently being executed by the actuating task
+//pushed on compatibility by TargetQueue array, popped on target completion
+GTarget* TargetsExecuting[GcodesSize];
+//flags if a target upon entering TargetsExecuting couldn't set its goals cause of unavailable Cspace
+//this causes the actuatingtask loop to try instead
+bool ToSetTargetGoals = false;
+
+void ExecutingTarget(GTarget* t){
+    //send to GExecuting, push to TargetsExecuting, pop from TargetQueue
+    if(xQueueSend(GExecuting,t,50/portTICK_PERIOD_MS)==pdTRUE){
+        TargetsExecuting[t->gcode] = t;
+        TargetQueue[t->gcode] = GTARGET_NOTDEF;
+    }
+}
+//called when the task has finished a target
+void ExecutedTarget(GTarget* t){
+    //send to GExecuted, pop from TargetsExecuting
+    if(xQueueSend(GExecuted,t,50/portTICK_PERIOD_MS)==pdTRUE){
+        TargetsExecuting[t->gcode] = GTARGET_NOTDEF;
+
+        //check compatibility of TargetQueue with TargetsExecuting
+        for(byte j=0; j<GcodesSize; j++){
+            if(TargetQueue[j] != GTARGET_NOTDEF){
+                bool compatible = true;
+                for(byte i=0; i<GcodesSize; i++){
+                    if(TargetsExecuting[i]!=GTARGET_NOTDEF && !GCompatibility[j][i]){
+                        compatible = false;
+                        break;
+                    }
+                }
+                if(compatible){
+                    //if Cspace available, set goals right now, otherwise loop will retry later
+                    if(xSemaphoreTake(WorldCspace_Mutex, 50/portTICK_PERIOD_MS)==pdTRUE){
+                        TargetQueue[j]->SetGoals(WorldCspace);
+                        xSemaphoreGive(WorldCspace_Mutex);
+                    }else{ ToSetTargetGoals = true; }
+                    ExecutingTarget(TargetQueue[j]);
+                }
+            }
+        }
+    }
+}
+
+
+//currently executing block
+MotionBlock* BlockExecuting = MOTIONBLOCK_NOTDEF;
+//last executed blocks
+const uint8_t LastBlocksLength = 6;
+uint8_t LastBlocksTail = 0;
+MotionBlock* LastBlocks[LastBlocksLength];
+void LastBlocksPush(MotionBlock* b){
+    DisposeMotionBlock(LastBlocks[LastBlocksTail]);
+    LastBlocks[LastBlocksTail] = b;
+    LastBlocksTail = (LastBlocksTail+1<LastBlocksLength)?LastBlocksTail+1:0;
+}
 
 
 void vTask_Actuating(void* arg) {
@@ -139,6 +147,9 @@ void vTask_Actuating(void* arg) {
         TargetQueue[i] = GTARGET_NOTDEF;
         TargetsExecuting[i] = GTARGET_NOTDEF;
     }
+    //initialise lastblocks
+    for(byte i=0; i<LastBlocksLength; i++){ LastBlocks[i] = MOTIONBLOCK_NOTDEF; }
+
 
 
     //motor control variable sent to the teensies
@@ -156,7 +167,7 @@ void vTask_Actuating(void* arg) {
             if(xSemaphoreTake(WorldCspace_Mutex, 20/portTICK_PERIOD_MS)==pdTRUE){
                 for(byte i=0; i<GcodesSize; i++){
                     if(TargetsExecuting[i] != GTARGET_NOTDEF && TargetsExecuting[i]->goals == GTARGETGOALS_NOTDEF){
-                        TargetsExecuting[i]->SetGoals();
+                        TargetsExecuting[i]->SetGoals(WorldCspace);
                     }
                 }
                 ToSetTargetGoals = false;   //unflag
@@ -183,7 +194,7 @@ void vTask_Actuating(void* arg) {
             if(compatible){
                 //if Cspace available, set goals right now, otherwise loop will retry later
                 if(xSemaphoreTake(WorldCspace_Mutex, 100/portTICK_PERIOD_MS)==pdTRUE){
-                    Targ->SetGoals();
+                    Targ->SetGoals(WorldCspace);
                     xSemaphoreGive(WorldCspace_Mutex);
                 }else{ ToSetTargetGoals = true; }
                 ExecutingTarget(Targ);

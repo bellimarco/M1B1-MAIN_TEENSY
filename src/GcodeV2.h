@@ -3,6 +3,37 @@
 //  paramaters are often referced by #1,#2,#3, and are separated by '_'
 //example: 4_1_-56.2, CC_90
 
+
+//parse parameter p for gcode g
+float GcodeParseFloat(String g, byte p){
+    //starting from [0], find index of next '_', for p times
+    byte n=0;
+    for(byte i=0; i<p+1; i++){
+        n = g.indexOf("_",n)+1;
+        if(n==0){ return FLOATNOTDEF; }
+    }
+    //if indeed found a '_' after p steps, find last index of content befor next '_' or end
+    byte m=n;
+    while(m<g.length()){ if(g[m]!='_'){ m++; }else{ break; }}
+    if(m>n){ return (g.substring(n,m)).toFloat(); }
+    else{ return FLOATNOTDEF; }
+}
+byte GcodeParseByte(String g, byte p){
+    //starting from [0], find index of next '_', for p times
+    byte n=0;
+    for(byte i=0; i<p+1; i++){
+        n = g.indexOf("_",n)+1;
+        if(n==0){ return BYTENOTDEF; }
+    }
+    //if indeed found a '_' after p steps, find last index of content befor next '_' or end
+    byte m=n;
+    while(m<g.length()){ if(g[m]!='_'){ m++; }else{ break; }}
+    if(m>n){ return (byte)(g.substring(n,m)).toInt(); }
+    else{ return BYTENOTDEF; }
+}
+
+
+
 //max string length of a gcode
 const uint8_t GcodeMaxLength = 20;
 //how many gcodes currently supported
@@ -41,70 +72,6 @@ const String GCODE_DICT[GcodesSize+1] = {
 
 
 
-//parse parameter p for gcode g
-float GcodeParseFloat(String g, byte p){
-    //starting from [0], find index of next '_', for p times
-    byte n=0;
-    for(byte i=0; i<p+1; i++){
-        n = g.indexOf("_",n)+1;
-        if(n==0){ return FLOATNOTDEF; }
-    }
-    //if indeed found a '_' after p steps, find last index of content befor next '_' or end
-    byte m=n;
-    while(m<g.length()){ if(g[m]!='_'){ m++; }else{ break; }}
-    if(m>n){ return (g.substring(n,m)).toFloat(); }
-    else{ return FLOATNOTDEF; }
-}
-byte GcodeParseByte(String g, byte p){
-    //starting from [0], find index of next '_', for p times
-    byte n=0;
-    for(byte i=0; i<p+1; i++){
-        n = g.indexOf("_",n)+1;
-        if(n==0){ return BYTENOTDEF; }
-    }
-    //if indeed found a '_' after p steps, find last index of content befor next '_' or end
-    byte m=n;
-    while(m<g.length()){ if(g[m]!='_'){ m++; }else{ break; }}
-    if(m>n){ return (byte)(g.substring(n,m)).toInt(); }
-    else{ return BYTENOTDEF; }
-}
-/*
-//same as above, but with a float pointer copy the parsed parameter (if successfull)
-void GcodeParse(float * f, String g, byte p){
-    if(g.length()>3){
-        //starting from [0], find index of next '_', for p times
-        byte n=0;
-        for(byte i=0; i<p+1; i++){
-            n = g.indexOf("_",n)+1;
-            if(n==0){ break; }
-        }
-        //if indeed found a '_' after p steps, find last index of content befor next '_' or end
-        byte m=n;
-        if(n>2){
-            while(m<g.length() && g[m]!='_'){ m++; }
-
-            *f = (g.substring(n,m)).toFloat();  //copy the value to the passed pointer
-        }
-    }
-}
-void GcodeParse(bool * f, String g, byte p){
-    if(g.length()>3){
-        //starting from [0], find index of next '_', for p times
-        byte n=0;
-        for(byte i=0; i<p+1; i++){
-            n = g.indexOf("_",n)+1;
-            if(n==0){ break; }
-        }
-        //if indeed found a '_' after p steps, find last index of content befor next '_' or end
-        byte m=n;
-        if(n>2){
-            while(m<g.length() && g[m]!='_'){ m++; }
-
-            *f = (g.substring(n,m)).toInt()?true:false;  //copy the value to the passed pointer
-        }
-    }
-}*/
-
 
 
 //GTarget objects definitions
@@ -132,7 +99,8 @@ class GTargetGoals{
 	uint8_t b1 = BYTENOTDEF;
 	float f0 = FLOATNOTDEF;
 	float f1 = FLOATNOTDEF;
-    GTargetGoals(){ };
+    GTargetGoals(){ }
+    GTargetGoals(GTargetParams* p){ b0 = p->b0; b1 = p->b1; f0 = p->f0; f1 = p->f1; }
     GTargetGoals(uint8_t b0_){ b0 = b0_; }
     GTargetGoals(float f0_){ f0 = f0_; }
     GTargetGoals(float f0_, float f1_){ f0 = f0_; f1 = f1_; }
@@ -168,42 +136,31 @@ class GTarget{
         if(gcode == GCODE_CONTROL){
             //b0 - control
             params = new GTargetParams(GcodeParseByte(gcode_string,0));
-        }else if(gcode == GCODE_MOVEJOINT){
+        }
+        else if(gcode == GCODE_MOVEJOINT){
             //b0 - joint, b1 - cntrlMode, f0 - time, f1 - cntrlTarget
             params = new GTargetParams(GcodeParseByte(gcode_string,0),GcodeParseByte(gcode_string,1),GcodeParseFloat(gcode_string,2),GcodeParseFloat(gcode_string,3));
-        }else if(gcode == GCODE_STAND){
+        }
+        else if(gcode == GCODE_STAND){
             //b0 - INF, f0 - height, f1 - lambda
             params = new GTargetParams(GcodeParseByte(gcode_string,0), BYTENOTDEF, GcodeParseFloat(gcode_string,1),GcodeParseFloat(gcode_string,2));
-        }else if(gcode == GCODE_SIT){
-            //
-            params = new GTargetParams();
-        }else if(gcode == GCODE_WALKFORW){
-            //f0 - distance, f1 - avrgVel
-            params = new GTargetParams(GcodeParseFloat(gcode_string,0),GcodeParseFloat(gcode_string,1));
-        }else if(gcode == GCODE_WALKFORW_INF){
-            //f0 - avrgVel
-            params = new GTargetParams(GcodeParseFloat(gcode_string,0));
-        }else if(gcode == GCODE_TURNYAW){
-            //f0 - angle, f1 - avrgVel
-            params = new GTargetParams(GcodeParseFloat(gcode_string,0),GcodeParseFloat(gcode_string,1));
-        }else if(gcode == GCODE_TURNYAW_INF){
-            //f0 - avrgVel
-            params = new GTargetParams(GcodeParseFloat(gcode_string,0));
-        }else if(gcode == GCODE_RUN_INF){
-            //f0 - avrgVel
-            params = new GTargetParams(GcodeParseFloat(gcode_string,0));
-        }else if(gcode == GCODE_JUMP){
-            //
-            params = new GTargetParams();
         }
         else{ //GCODE_NOTDEF
             params = GTARGETPARAMS_NOTDEF;
         }
 	}
 	
-	void SetGoals(){
-		//based on the gcode, params and Cspace determine goals
-		//goals = {};
+    //based on target params and given cspace, set goals object
+	void SetGoals(Cspace* C){
+        if(gcode == GCODE_MOVEJOINT){
+            goals = new GTargetGoals(params);
+        }
+        else if(gcode == GCODE_STAND){
+            goals = new GTargetGoals(params);
+        }
+        else{ //GCODE_NOTDEF or GCODE_CONTROL
+            goals = GTARGETGOALS_NOTDEF;
+        }
 	}
 	
 	bool Finished(){
