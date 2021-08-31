@@ -53,8 +53,25 @@ class Cspace{
 
 Cspace* CSPACE_NOTDEF = new Cspace();
 
-Cspace* WorldCspace = new Cspace();
+void DisposeCspace(Cspace* c){
+    if(c != CSPACE_NOTDEF){
+
+        delete c; c = nullptr;
+    }
+}
 
 
+//worldCspaces are created by the sensitive task and pushed to this array
+//Cspaces that become outdated are delete by the push function
+//this way any task can access the most recent Cspace at any time,
+//  only thing, it must check if it didn't outdate by checking if pointer became nullptr
+//  i.e. it must finish using the WorldCspace[Tail] in SenseDelay*WorldCspaceLength milliseconds
+const uint8_t WorldCspaceLength = 25;
+uint8_t WorldCspaceTail = 0;
+Cspace* WorldCspace[WorldCspaceLength];  //array should now only contain null pointers
 
-
+void WorldCspacePush(Cspace* c){
+    if(WorldCspace[WorldCspaceTail] != nullptr){ DisposeCspace(WorldCspace[WorldCspaceTail]); }
+    WorldCspace[WorldCspaceTail] = c;
+    WorldCspaceTail = (WorldCspaceTail+1<WorldCspaceLength)?WorldCspaceTail+1:0;
+}

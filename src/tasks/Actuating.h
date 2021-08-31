@@ -96,11 +96,9 @@ GTarget* TargetQueue[GcodesSize];
 //GTargets currently being executed by the actuating task
 //pushed on compatibility by TargetQueue array, popped on target completion
 GTarget* TargetsExecuting[GcodesSize];
-//flags if a target upon entering TargetsExecuting couldn't set its goals cause of unavailable Cspace
-//this causes the actuatingtask loop to try instead
-bool ToSetTargetGoals = false;
 
 void ExecutingTarget(GTarget* t){
+    t->SetGoals(WorldCspace[WorldCspaceTail]);
     //send to GExecuting, push to TargetsExecuting, pop from TargetQueue
     if(xQueueSend(GExecuting,t,50/portTICK_PERIOD_MS)==pdTRUE){
         TargetsExecuting[t->gcode] = t;
@@ -123,14 +121,7 @@ void ExecutedTarget(GTarget* t){
                         break;
                     }
                 }
-                if(compatible){
-                    //if Cspace available, set goals right now, otherwise loop will retry later
-                    if(xSemaphoreTake(WorldCspace_Mutex, 10/portTICK_PERIOD_MS)==pdTRUE){
-                        TargetQueue[j]->SetGoals(WorldCspace);
-                        xSemaphoreGive(WorldCspace_Mutex);
-                    }else{ ToSetTargetGoals = true; }
-                    ExecutingTarget(TargetQueue[j]);
-                }
+                if(compatible){ ExecutingTarget(TargetQueue[j]); }
             }
         }
     }
@@ -181,22 +172,9 @@ void vTask_Actuating(void* arg) {
         previousT = presentT;
 
         if(BlockExecuting != MOTIONBLOCK_NOTDEF){
-            uint8_t s = BlockExecuting->Status(presentT, WorldCspace);
+            uint8_t s = BlockExecuting->Status(presentT, WorldCspace[WorldCspaceTail]);
 
             
-        }
-
-        //if there are targets with their goals undefined
-        if(ToSetTargetGoals){
-            if(xSemaphoreTake(WorldCspace_Mutex, 10/portTICK_PERIOD_MS) == pdTRUE){
-                for(byte i=0; i<GcodesSize; i++){
-                    if(TargetsExecuting[i] != GTARGET_NOTDEF && TargetsExecuting[i]->goals == GTARGETGOALS_NOTDEF){
-                        TargetsExecuting[i]->SetGoals(WorldCspace);
-                    }
-                }
-                ToSetTargetGoals = false;   //unflag
-                xSemaphoreGive(WorldCspace_Mutex);
-            }
         }
 
         //new codes in the first row of the GBuffer
@@ -214,15 +192,7 @@ void vTask_Actuating(void* arg) {
                         break;
                     }
                 }
-
-                if(compatible){
-                    //if Cspace available, set goals right now, otherwise loop will retry later
-                    if(xSemaphoreTake(WorldCspace_Mutex, 10/portTICK_PERIOD_MS)==pdTRUE){
-                        Targ->SetGoals(WorldCspace);
-                        xSemaphoreGive(WorldCspace_Mutex);
-                    }else{ ToSetTargetGoals = true; }
-                    ExecutingTarget(Targ);
-                }
+                if(compatible){ ExecutingTarget(Targ); }
             }
         }
         

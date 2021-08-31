@@ -90,6 +90,19 @@ class MotionBlock{
     }
 };
 
+MotionBlock* MOTIONBLOCK_NOTDEF = new MotionBlock();
+
+//delete motionblock object and its subobjects from memomry
+void DisposeMotionBlock(MotionBlock* b){
+    if(b != MOTIONBLOCK_NOTDEF){
+        if(b->params != MOTIONBLOCKPARAMS_NOTDEF){ delete b->params; b->params = nullptr; }
+        delete b; b = nullptr;
+    }
+}
+
+
+
+
 
 //block type specific functions
 
@@ -113,14 +126,3 @@ bool MotionBlock::Finished_STAND(Cspace* C){
 }
 
 
-
-MotionBlock* MOTIONBLOCK_NOTDEF = new MotionBlock();
-
-
-//delete motionblock object and its subobjects from memomry
-void DisposeMotionBlock(MotionBlock* b){
-    if(b != MOTIONBLOCK_NOTDEF){
-        if(b->params != MOTIONBLOCKPARAMS_NOTDEF){ delete b->params; }
-        delete b;
-    }
-}

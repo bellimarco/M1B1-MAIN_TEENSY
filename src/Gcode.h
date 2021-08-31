@@ -178,9 +178,9 @@ GTarget* GTARGET_NOTDEF = new GTarget(String(GCODE_NOTDEF));
 //delete gtarget object and its subobjects from memomry
 void DisposeGTarget(GTarget* t){
     if(t != GTARGET_NOTDEF){
-        if(t->params != GTARGETPARAMS_NOTDEF){ delete t->params; }
-        if(t->goals != GTARGETGOALS_NOTDEF){ delete t->goals; }
-        delete t;
+        if(t->params != GTARGETPARAMS_NOTDEF){ delete t->params; t->params = nullptr; }
+        if(t->goals != GTARGETGOALS_NOTDEF){ delete t->goals; t->goals = nullptr; }
+        delete t; t = nullptr;
     }
 }
 
@@ -230,7 +230,7 @@ GTarget* GBuffer[GcodesSize][GBufferSize];
 void GCodeSetup(){
     for(byte i=0; i<GcodesSize; i++){
         for(byte j=0; j<GBufferSize; j++){
-        GBuffer[i][j] = GTARGET_NOTDEF;
+            GBuffer[i][j] = GTARGET_NOTDEF;
         }
     }
 }
