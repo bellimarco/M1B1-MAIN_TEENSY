@@ -181,24 +181,6 @@ void vTask_Actuating(void* arg) {
         previousT = presentT;
 
 
-        //check if indeed any new targets want to enter TargetQueue
-        while(uxQueueMessagesWaiting(GtoActuating)>0){
-            GTarget* Targ = GTARGET_NOTDEF;
-            if(xQueueReceive(GtoActuating,Targ,10/portTICK_PERIOD_MS) == pdTRUE){
-                
-                TargetQueue[Targ->gcode] = Targ;
-
-                //check compatibility with TargetsExecuting
-                bool compatible = true;
-                for(byte i=0; i<GcodesSize; i++){
-                    if(TargetsExecuting[i]!=GTARGET_NOTDEF && !GCompatibility[Targ->gcode][i]){
-                        compatible = false; break;
-                    }
-                }
-                if(compatible){ ExecutingTarget(Targ); }
-            }
-        }
-
 
         //taking latest WorldCspace available, remember it has an expiring time
         Cspace* Cnow = WorldCspace[WorldCspaceTail];
