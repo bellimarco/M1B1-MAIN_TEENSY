@@ -40,6 +40,8 @@ class MotionBlock{
     
     Cspace* Cstart = CSPACE_NOTDEF;
 
+    uint8_t LastStatus = BYTENOTDEF; //last status evaluated
+
     //Motor controllers for each block type
     //given the current Cspace and Trun, compute MotorControl object to employ
     MotorControlStruct MotorController_MOVEJOINT(Cspace* C);
@@ -70,16 +72,18 @@ class MotionBlock{
         Trun = (float) (t-Tstart)*10e-6;
 
         if(id == BLOCKID_MOVEJOINT){
-            if(Finished_MOVEJOINT(C)){ return 1; }
-            else{ return 0; }
+            if(Finished_MOVEJOINT(C)){ LastStatus = 1; }
+            else{ LastStatus = 0; }
         }
         else if(id == BLOCKID_STAND){
-            if(Finished_STAND(C)){ return 1; }
-            else{ return 0; }
+            if(Finished_STAND(C)){ LastStatus = 1; }
+            else{ LastStatus = 0; }
         }
         else{
-            return 1;
+            LastStatus = 1;
         }
+
+        return LastStatus;
     }
 
     MotionBlock(){}

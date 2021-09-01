@@ -141,6 +141,15 @@ void LastBlocksPush(MotionBlock* b){
 }
 
 
+
+//given the current TargetsExecuting, TargetQueue, LastBlocks arrays,
+MotionBlock* PlanBlocks(uint32_t t, Cspace* C){
+
+
+    return (new MotionBlock());
+}
+
+
 void vTask_Actuating(void* arg) {
   
     LogPrintln("Actuating/ Warmup: "+String(1500)+"ms\n");
@@ -171,13 +180,8 @@ void vTask_Actuating(void* arg) {
         elapsedT = float(presentT - previousT);
         previousT = presentT;
 
-        if(BlockExecuting != MOTIONBLOCK_NOTDEF){
-            uint8_t s = BlockExecuting->Status(presentT, WorldCspace[WorldCspaceTail]);
 
-            
-        }
-
-        //new codes in the first row of the GBuffer
+        //check if indeed any new targets want to enter TargetQueue
         while(uxQueueMessagesWaiting(GtoActuating)>0){
             GTarget* Targ = GTARGET_NOTDEF;
             if(xQueueReceive(GtoActuating,Targ,10/portTICK_PERIOD_MS) == pdTRUE){
@@ -188,14 +192,87 @@ void vTask_Actuating(void* arg) {
                 bool compatible = true;
                 for(byte i=0; i<GcodesSize; i++){
                     if(TargetsExecuting[i]!=GTARGET_NOTDEF && !GCompatibility[Targ->gcode][i]){
-                        compatible = false;
-                        break;
+                        compatible = false; break;
                     }
                 }
                 if(compatible){ ExecutingTarget(Targ); }
             }
         }
-        
+
+
+        //taking latest WorldCspace available, remember it has an expiring time
+        Cspace* Cnow = WorldCspace[WorldCspaceTail];
+
+        uint8_t BlockStatus = (BlockExecuting==MOTIONBLOCK_NOTDEF)?
+            LastBlocks[LastBlocksTail]->LastStatus :    //if no block executing, take exit status value of last block (which shoudn't be 0)
+            BlockExecuting->Status(presentT, Cnow);     //if block executing, evaluate current status value
+
+        while(BlockStatus != 0){
+
+            //if there is a block executing, and in any case it is not running
+            if(BlockExecuting != MOTIONBLOCK_NOTDEF){
+                //clear existing block and push it to LastBlocks
+                LastBlocksPush(BlockExecuting); BlockExecuting = MOTIONBLOCK_NOTDEF;
+            }
+
+            //if there is no block executing
+            if(BlockStatus == 1){
+                //if block finished successfully start standard procedure to determine the next block
+
+                //check if any target has finished
+                //in that case ExecutedTarget will automatically shift compatible elements to TargetsExecuting
+                for(uint8_t i=0; i<GcodesSize; i++){
+                    if(TargetsExecuting[i] != GTARGET_NOTDEF){ if(TargetsExecuting[i]->Finished()){
+                        ExecutedTarget(TargetsExecuting[i]);
+                    }}
+                }
+
+                //let SerialComm run immediatly, so that if any targets entered execution (i.e. exited row 0 of the GBuffer)
+                //  it can check for compatibility on row 0 and send over any new compatible targets
+                xSemaphoreGive(Task_SerialComm_Semaphore);
+                //CHECK IF THIS DOES INDEED WORK, CAUSE NOW ITS JUST A RACE CONDITION
+
+                //check if indeed any new targets want to enter TargetQueue
+                while(uxQueueMessagesWaiting(GtoActuating)>0){
+                    GTarget* Targ = GTARGET_NOTDEF;
+                    if(xQueueReceive(GtoActuating,Targ,10/portTICK_PERIOD_MS) == pdTRUE){
+                        
+                        TargetQueue[Targ->gcode] = Targ;
+
+                        //check compatibility with TargetsExecuting
+                        bool compatible = true;
+                        for(byte i=0; i<GcodesSize; i++){
+                            if(TargetsExecuting[i]!=GTARGET_NOTDEF && !GCompatibility[Targ->gcode][i]){
+                                compatible = false; break;
+                            }
+                        }
+                        if(compatible){ ExecutingTarget(Targ); }
+                    }
+                }
+
+                BlockExecuting = PlanBlocks(presentT, Cnow);
+            }
+            else{
+                //if block had a run error
+
+            }
+
+            //if a no new block entered directly execution break from while loop to continue with the task loop
+            if(BlockExecuting == MOTIONBLOCK_NOTDEF){
+                break;
+            }
+            else{
+                //if nee block was actually created, evaluate its status and rerun while loop (if status != 0)
+                BlockStatus = BlockExecuting->Status(presentT, Cnow);
+            }
+        }
+
+        //after all this jazz
+        //if existing block is runnning, send control parameters to secondary teensies
+        if(BlockStatus == 0 && BlockExecuting != MOTIONBLOCK_NOTDEF){
+            MotorControlTarget = BlockExecuting->BlockControl(Cnow);
+            SendMotorControl(MotorControlTarget);
+        }
 
 
         #ifdef TeensySlaves_SendTest
