@@ -174,7 +174,7 @@ void vTask_Actuating(void* arg) {
     MotorControlStruct MotorControlTarget;
     for(byte i=0; i<MotorNumber; i++){ MotorControlTarget.val[i] = 0; MotorControlTarget.mode[i] = 0; }
     
-    while (1) {
+    while (1) { 
 
         presentT = micros();
         elapsedT = float(presentT - previousT);
@@ -203,16 +203,21 @@ void vTask_Actuating(void* arg) {
 
                 //check if any target has finished
                 //in that case ExecutedTarget will automatically shift compatible elements to TargetsExecuting
+                bool executed = false;
                 for(uint8_t i=0; i<GcodesSize; i++){
                     if(TargetsExecuting[i] != GTARGET_NOTDEF){ if(TargetsExecuting[i]->Finished()){
                         ExecutedTarget(TargetsExecuting[i]);
+                        executed = true;
                     }}
                 }
 
-                //let SerialComm run immediatly, so that if any targets entered execution (i.e. exited row 0 of the GBuffer)
-                //  it can check for compatibility on row 0 and send over any new compatible targets
-                xSemaphoreGive(Task_SerialComm_Semaphore);
-                //CHECK IF THIS DOES INDEED WORK, CAUSE NOW ITS JUST A RACE CONDITION
+                //if has any target has now finished
+                if(executed){
+                    //let SerialComm run immediatly, so that since some targets entered execution (i.e. exited row 0 of the GBuffer)
+                    //  it can check for compatibility on row 0 and send over any new compatible targets
+                    xSemaphoreGive(Task_SerialComm_Semaphore);
+                    //CHECK IF THIS DOES INDEED WORK, CAUSE NOW ITS JUST A RACE CONDITION
+                }
 
                 //check if indeed any new targets want to enter TargetQueue
                 while(uxQueueMessagesWaiting(GtoActuating)>0){
