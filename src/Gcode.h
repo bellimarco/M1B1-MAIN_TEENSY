@@ -255,13 +255,13 @@ void GCodeSetup(){
 //MOVEJOINT
 bool GTarget::TargetFinished_MOVEJOINT(Cspace* C){
 
-    return true;
+    return false;
 }
 
 //STAND
 bool GTarget::TargetFinished_STAND(Cspace* C){
     
-    return true;
+    return false;
 }
 
 

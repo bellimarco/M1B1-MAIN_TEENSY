@@ -19,8 +19,6 @@
 //DEBUG 
 //#define TeensySlaves_SendTest    //sending in the actuating task loop testing data to the teensy
 
-#define AutoExecuteMoveCodes     //when the actuating task receives a gcode, it just delays some time and then finishes it
-
 
 //CONDITIONALS CONFIGS
 

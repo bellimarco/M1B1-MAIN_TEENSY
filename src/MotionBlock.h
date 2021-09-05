@@ -118,7 +118,7 @@ MotorControlStruct MotionBlock::MotorController_MOVEJOINT(Cspace* C){
 }
 bool MotionBlock::BlockFinished_MOVEJOINT(Cspace* C){
 
-    return Trun > 4;
+    return false;
 }
 //STAND
 MotorControlStruct MotionBlock::MotorController_STAND(Cspace* C){
@@ -127,7 +127,7 @@ MotorControlStruct MotionBlock::MotorController_STAND(Cspace* C){
 }
 bool MotionBlock::BlockFinished_STAND(Cspace* C){
 
-    return Trun > 4;
+    return false;
 }
 
 
