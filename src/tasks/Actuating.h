@@ -258,7 +258,7 @@ void vTask_Actuating(void* arg) {
 
                 BlockExecuting = PlanBlocks(presentT, Cnow);
             }
-            else{
+            else if(BlockStatus == BLOCKSTATUS_RUNERROR){
                 //if block had a run error
 
             }

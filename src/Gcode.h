@@ -165,16 +165,16 @@ class GTarget{
 	}
 
 
-    bool TargetFinished_MOVEJOINT(Cspace* C);
-    bool TargetFinished_STAND(Cspace* C);
+    bool Finished_MOVEJOINT(Cspace* C);
+    bool Finished_STAND(Cspace* C);
 	
 	bool Finished(Cspace* C){
 		if(!BlocksFinished){
 			if(gcode == GCODE_MOVEJOINT){
-                return TargetFinished_MOVEJOINT(C);
+                return Finished_MOVEJOINT(C);
             }
             else if(gcode == GCODE_STAND){
-                return TargetFinished_STAND(C);
+                return Finished_STAND(C);
             }
             else{
                 return true;
@@ -253,13 +253,13 @@ void GCodeSetup(){
 //move gcode specific functions
 
 //MOVEJOINT
-bool GTarget::TargetFinished_MOVEJOINT(Cspace* C){
+bool GTarget::Finished_MOVEJOINT(Cspace* C){
 
     return false;
 }
 
 //STAND
-bool GTarget::TargetFinished_STAND(Cspace* C){
+bool GTarget::Finished_STAND(Cspace* C){
     
     return false;
 }
