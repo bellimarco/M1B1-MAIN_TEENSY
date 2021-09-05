@@ -167,8 +167,6 @@ MotionBlock* PlanBlocks(uint32_t t, Cspace* C){
 
 
 
-
-
 void vTask_Actuating(void* arg) {
   
     LogPrintln("Actuating/ Warmup: "+String(1500)+"ms\n");
@@ -258,9 +256,9 @@ void vTask_Actuating(void* arg) {
 
                 BlockExecuting = PlanBlocks(presentT, Cnow);
             }
-            else if(BlockStatus == BLOCKSTATUS_RUNERROR){
-                //if block had a run error
-
+            else{
+                //if block had an error
+                BlockExecuting = PlanError(presentT, Cnow, BlockStatus);
             }
 
             //if a no new block entered directly execution break from while loop to continue with the task loop

@@ -12,7 +12,8 @@ const uint8_t BLOCKID_WALKFORW_END_L = 8;
 
 const uint8_t BLOCKSTATUS_RUNNING = 0;
 const uint8_t BLOCKSTATUS_FINISHED = 1;
-const uint8_t BLOCKSTATUS_RUNERROR = 2;
+const uint8_t BLOCKSTATUS_ERROR = 2;      //general block error
+const uint8_t BLOCKSTATUS_LOSTSTAND = 3;  //lost standing equilibrium status
 
 //params object of a motionblock
 class MotionBlockParams{
@@ -83,11 +84,11 @@ class MotionBlock{
             LastStatus = Finished_MOVEJOINT(C)?BLOCKSTATUS_FINISHED:BLOCKSTATUS_RUNNING;
         }
         else if(id == BLOCKID_STAND){
-            LastStatus = Error_LostStand(C)?BLOCKSTATUS_RUNERROR:
+            LastStatus = Error_LostStand(C)?BLOCKSTATUS_LOSTSTAND:
                         (Finished_STAND(C)?BLOCKSTATUS_FINISHED:BLOCKSTATUS_RUNNING);
         }
         else{
-            LastStatus = BLOCKSTATUS_RUNERROR;
+            LastStatus = BLOCKSTATUS_ERROR;
         }
 
         return LastStatus;
@@ -114,12 +115,6 @@ void DisposeMotionBlock(MotionBlock* b){
 
 
 
-//when Cspace is in such a configuration that the STAND controller can't get
-//  the robot upright by itself
-bool MotionBlock::Error_LostStand(Cspace* C){
-
-    return false;
-}
 
 
 //block type specific functions
@@ -143,4 +138,27 @@ MotorControlStruct MotionBlock::MotorController_STAND(Cspace* C){
 bool MotionBlock::Finished_STAND(Cspace* C){
 
     return false;
+}
+
+
+
+//Block Error Management
+
+//when Cspace is in such a configuration that the STAND controller can't get
+//  the robot upright by itself
+bool MotionBlock::Error_LostStand(Cspace* C){
+
+    return false;
+}
+
+
+//if a block return status other than running or finished,
+//  next block is determined by this function
+MotionBlock* PlanError(uint32_t t, Cspace* C, uint8_t status){
+    MotionBlockParams* params = MOTIONBLOCKPARAMS_NOTDEF;
+    MotionBlock* block = MOTIONBLOCK_NOTDEF;
+
+
+
+    return block;
 }
