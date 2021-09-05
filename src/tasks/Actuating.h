@@ -157,11 +157,25 @@ MotionBlock* PlanBlocks(uint32_t t, Cspace* C){
         //block params = target goals
         params = new MotionBlockParams(TargetsExecuting[GCODE_MOVEJOINT]->goals);
         block = new MotionBlock(BLOCKID_MOVEJOINT,t,params,C);
+        //there is only this one motionblock for MOVEJOINT target
+        TargetsExecuting[GCODE_MOVEJOINT]->BlocksFinished = true;
     }
 
     return block;
 }
 
+
+
+//if a block return status other than running or finished,
+//  next block is determined by this function
+MotionBlock* PlanError(uint32_t t, Cspace* C, uint8_t status){
+    MotionBlockParams* params = MOTIONBLOCKPARAMS_NOTDEF;
+    MotionBlock* block = MOTIONBLOCK_NOTDEF;
+
+
+
+    return block;
+}
 
 
 

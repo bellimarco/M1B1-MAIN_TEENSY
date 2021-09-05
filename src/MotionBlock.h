@@ -150,15 +150,3 @@ bool MotionBlock::Error_LostStand(Cspace* C){
 
     return false;
 }
-
-
-//if a block return status other than running or finished,
-//  next block is determined by this function
-MotionBlock* PlanError(uint32_t t, Cspace* C, uint8_t status){
-    MotionBlockParams* params = MOTIONBLOCKPARAMS_NOTDEF;
-    MotionBlock* block = MOTIONBLOCK_NOTDEF;
-
-
-
-    return block;
-}
