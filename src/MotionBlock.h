@@ -22,6 +22,7 @@ class MotionBlockParams{
 	float f0 = FLOATNOTDEF;
 	float f1 = FLOATNOTDEF;
     MotionBlockParams(){ };
+    MotionBlockParams(GTargetGoals* g){ g->b0 = b0; g->b1 = b1; g->f0 = f0; g->f1 = f1; }
     MotionBlockParams(uint8_t b0_){ b0 = b0_; }
     MotionBlockParams(float f0_){ f0 = f0_; }
     MotionBlockParams(float f0_, float f1_){ f0 = f0_; f1 = f1_; }

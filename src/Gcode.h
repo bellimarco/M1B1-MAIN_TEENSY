@@ -151,8 +151,8 @@ class GTarget{
         }
 	}
 	
-    //based on target params and given cspace, set goals object
-	void SetGoals(Cspace* C){
+    //based on target params, timestamp and given cspace, set goals object
+	void SetGoals(uint32_t t, Cspace* C){
         if(gcode == GCODE_MOVEJOINT){
             goals = new GTargetGoals(params);
         }

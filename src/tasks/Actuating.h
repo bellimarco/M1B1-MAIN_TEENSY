@@ -72,6 +72,8 @@ void SendMotorControl(MotorControlStruct C){
 
 
 
+//INTER-TASK COMMUNICATION
+
 //queue for sending to the actuating task newly arrived gtargets on the lowest row in the gbuffer
 const uint8_t GtoActuatingLength = 8;
 QueueHandle_t GtoActuating = xQueueCreate(GtoActuatingLength,sizeof(GTarget*));
@@ -90,6 +92,9 @@ QueueHandle_t GExecuted = xQueueCreate(GExecutedLength,sizeof(GTarget*));
 
 
 
+
+//ACTUATING TASK TARGET MANAGEMENT
+
 //move GTargets in first row of the GBuffer
 //pushed by GtoActuating, popped on compatibility with TargetsExecuting array
 GTarget* TargetQueue[GcodesSize];
@@ -98,7 +103,6 @@ GTarget* TargetQueue[GcodesSize];
 GTarget* TargetsExecuting[GcodesSize];
 
 void ExecutingTarget(GTarget* t){
-    t->SetGoals(WorldCspace[WorldCspaceTail]);
     //send to GExecuting, push to TargetsExecuting, pop from TargetQueue
     if(xQueueSend(GExecuting,t,50/portTICK_PERIOD_MS)==pdTRUE){
         TargetsExecuting[t->gcode] = t;
@@ -110,23 +114,26 @@ void ExecutedTarget(GTarget* t){
     //send to GExecuted, pop from TargetsExecuting
     if(xQueueSend(GExecuted,t,50/portTICK_PERIOD_MS)==pdTRUE){
         TargetsExecuting[t->gcode] = GTARGET_NOTDEF;
-
-        //check compatibility of TargetQueue with TargetsExecuting
-        for(byte j=0; j<GcodesSize; j++){
-            if(TargetQueue[j] != GTARGET_NOTDEF){
-                bool compatible = true;
-                for(byte i=0; i<GcodesSize; i++){
-                    if(TargetsExecuting[i]!=GTARGET_NOTDEF && !GCompatibility[j][i]){
-                        compatible = false;
-                        break;
-                    }
-                }
-                if(compatible){ ExecutingTarget(TargetQueue[j]); }
-            }
+    }
+}
+//check compatibility with TargetsExecuting and try to push
+void TryPushToExecuting(uint32_t t, Cspace* C, GTarget* T){
+    bool compatible = true;
+    for(byte i=0; i<GcodesSize; i++){
+        if(TargetsExecuting[i]!=GTARGET_NOTDEF && !GCompatibility[T->gcode][i]){
+            compatible = false; break;
         }
+    }
+    if(compatible){
+        T->SetGoals(t, C);
+        ExecutingTarget(T);
     }
 }
 
+
+
+
+//ACTUATING TASK BLOCK MANAGEMENT
 
 //currently executing block
 MotionBlock* BlockExecuting = MOTIONBLOCK_NOTDEF;
@@ -141,13 +148,25 @@ void LastBlocksPush(MotionBlock* b){
 }
 
 
-
 //given the current TargetsExecuting, TargetQueue, LastBlocks arrays,
 MotionBlock* PlanBlocks(uint32_t t, Cspace* C){
+    MotionBlockParams* params = MOTIONBLOCKPARAMS_NOTDEF;
+    MotionBlock* block = MOTIONBLOCK_NOTDEF;
 
+    if(TargetsExecuting[GCODE_MOVEJOINT] != GTARGET_NOTDEF){
+        //block params = target goals
+        params = new MotionBlockParams(TargetsExecuting[GCODE_MOVEJOINT]->goals);
+        block = new MotionBlock(BLOCKID_MOVEJOINT,t,params,C);
+    }
 
-    return (new MotionBlock());
+    return block;
 }
+
+
+
+
+
+
 
 
 void vTask_Actuating(void* arg) {
@@ -205,7 +224,7 @@ void vTask_Actuating(void* arg) {
                 //in that case ExecutedTarget will automatically shift compatible elements to TargetsExecuting
                 bool executed = false;
                 for(uint8_t i=0; i<GcodesSize; i++){
-                    if(TargetsExecuting[i] != GTARGET_NOTDEF){ if(TargetsExecuting[i]->Finished()){
+                    if(TargetsExecuting[i] != GTARGET_NOTDEF){ if(TargetsExecuting[i]->Finished(Cnow)){
                         ExecutedTarget(TargetsExecuting[i]);
                         executed = true;
                     }}
@@ -213,6 +232,13 @@ void vTask_Actuating(void* arg) {
 
                 //if has any target has now finished
                 if(executed){
+                    //check compatibility of TargetQueue with TargetsExecuting
+                    for(byte j=0; j<GcodesSize; j++){
+                        if(TargetQueue[j] != GTARGET_NOTDEF){
+                            TryPushToExecuting(presentT, Cnow, TargetQueue[j]);
+                        }
+                    }
+
                     //let SerialComm run immediatly, so that since some targets entered execution (i.e. exited row 0 of the GBuffer)
                     //  it can check for compatibility on row 0 and send over any new compatible targets
                     xSemaphoreGive(Task_SerialComm_Semaphore);
@@ -226,14 +252,7 @@ void vTask_Actuating(void* arg) {
                         
                         TargetQueue[Targ->gcode] = Targ;
 
-                        //check compatibility with TargetsExecuting
-                        bool compatible = true;
-                        for(byte i=0; i<GcodesSize; i++){
-                            if(TargetsExecuting[i]!=GTARGET_NOTDEF && !GCompatibility[Targ->gcode][i]){
-                                compatible = false; break;
-                            }
-                        }
-                        if(compatible){ ExecutingTarget(Targ); }
+                        TryPushToExecuting(presentT, Cnow, Targ);
                     }
                 }
 

@@ -103,3 +103,10 @@ bool Log_ = true;   //controllable variable to turn on off the serial log
 #ifdef USE_ENC
     #include <sensors/ENC.h>
 #endif
+
+
+
+
+
+//Low level configurations for the motion architecture (for GTarget and MotionBlock)
+
