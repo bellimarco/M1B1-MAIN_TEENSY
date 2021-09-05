@@ -63,8 +63,8 @@ class MotionBlock{
 
 
     //block finished functions for each block type
-    bool Finished_MOVEJOINT(Cspace* C);
-    bool Finished_STAND(Cspace* C);
+    bool BlockFinished_MOVEJOINT(Cspace* C);
+    bool BlockFinished_STAND(Cspace* C);
 
 
     //status of the block given t and C, 0->running, 1->finished, 2->failed
@@ -75,12 +75,10 @@ class MotionBlock{
         //TODO: add conditional to test status run error
 
         if(id == BLOCKID_MOVEJOINT){
-            if(Finished_MOVEJOINT(C)){ LastStatus = BLOCKSTATUS_FINISHED; }
-            else{ LastStatus = BLOCKSTATUS_RUNNING; }
+            LastStatus = BlockFinished_MOVEJOINT(C)?BLOCKSTATUS_FINISHED:BLOCKSTATUS_RUNNING;
         }
         else if(id == BLOCKID_STAND){
-            if(Finished_STAND(C)){ LastStatus = BLOCKSTATUS_FINISHED; }
-            else{ LastStatus = BLOCKSTATUS_RUNNING; }
+            LastStatus = BlockFinished_STAND(C)?BLOCKSTATUS_FINISHED:BLOCKSTATUS_RUNNING;
         }
         else{
             LastStatus = BLOCKSTATUS_FINISHED;
@@ -118,7 +116,7 @@ MotorControlStruct MotionBlock::MotorController_MOVEJOINT(Cspace* C){
 
     return MOTORCONTROL_NOTDEF;
 }
-bool MotionBlock::Finished_MOVEJOINT(Cspace* C){
+bool MotionBlock::BlockFinished_MOVEJOINT(Cspace* C){
 
     return Trun > 4;
 }
@@ -127,7 +125,7 @@ MotorControlStruct MotionBlock::MotorController_STAND(Cspace* C){
     
     return MOTORCONTROL_NOTDEF;
 }
-bool MotionBlock::Finished_STAND(Cspace* C){
+bool MotionBlock::BlockFinished_STAND(Cspace* C){
 
     return Trun > 4;
 }
