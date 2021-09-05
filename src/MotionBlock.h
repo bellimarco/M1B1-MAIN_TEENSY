@@ -114,16 +114,18 @@ void DisposeMotionBlock(MotionBlock* b){
 
 //MOVEJOINT
 MotorControlStruct MotionBlock::MotorController_MOVEJOINT(Cspace* C){
-
-    return MOTORCONTROL_NOTDEF;
+    MotorControlStruct cntrl = {{0,0,0,0,0,0,0,0},{0,0,0,0,0,0,0,0}};
+    cntrl.val[params->b0] = params->b1;
+    cntrl.val[params->b0] = params->f1;
+    return cntrl;
 }
 bool MotionBlock::BlockFinished_MOVEJOINT(Cspace* C){
-
-    return false;
+    //running time of block greater than exit time set in params
+    return Trun > params->f0;
 }
 //STAND
 MotorControlStruct MotionBlock::MotorController_STAND(Cspace* C){
-    
+
     return MOTORCONTROL_NOTDEF;
 }
 bool MotionBlock::BlockFinished_STAND(Cspace* C){
