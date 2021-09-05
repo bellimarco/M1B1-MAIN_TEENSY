@@ -119,6 +119,7 @@ class GTarget{
 	GTargetParams* params = GTARGETPARAMS_NOTDEF;
 	GTargetGoals* goals = GTARGETGOALS_NOTDEF;
 	
+    //if at next call of Finished (i.e. after execution of the current block) the target is finished
 	bool BlocksFinished = false;
 	
 	GTarget(String s){
@@ -162,13 +163,24 @@ class GTarget{
             goals = GTARGETGOALS_NOTDEF;
         }
 	}
+
+
+    bool TargetFinished_MOVEJOINT(Cspace* C);
+    bool TargetFinished_STAND(Cspace* C);
 	
-	bool Finished(){
+	bool Finished(Cspace* C){
 		if(!BlocksFinished){
-			//return Cspace € GTargetGoalsMinMax[gcode];
-			
-			return false;
-		}else{
+			if(gcode == GCODE_MOVEJOINT){
+                return TargetFinished_MOVEJOINT(C);
+            }
+            else if(gcode == GCODE_STAND){
+                return TargetFinished_STAND(C);
+            }
+            else{
+                return true;
+            }
+		}
+        else{
 			return true;
 		}
 	}
@@ -208,8 +220,6 @@ const static uint8_t GCompatibility[GcodesSize][GcodesSize] = {
 
 
 
-
-
 //Gcode buffer management
 const uint8_t GBufferSize = 8;  //max number of rows in the buffer
 //minimum number of empty rows at the top of the buffer for it to be considered not full
@@ -236,5 +246,22 @@ void GCodeSetup(){
 }
 
 
+
+
+
+
+//move gcode specific functions
+
+//MOVEJOINT
+bool GTarget::TargetFinished_MOVEJOINT(Cspace* C){
+
+    return true;
+}
+
+//STAND
+bool GTarget::TargetFinished_STAND(Cspace* C){
+    
+    return true;
+}
 
 
