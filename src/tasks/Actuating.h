@@ -189,7 +189,7 @@ void vTask_Actuating(void* arg) {
             LastBlocks[LastBlocksTail]->LastStatus :    //if no block executing, take exit status value of last block (which shoudn't be 0)
             BlockExecuting->Status(presentT, Cnow);     //if block executing, evaluate current status value
 
-        while(BlockStatus != 0){
+        while(BlockStatus != BLOCKSTATUS_RUNNING){
 
             //if there is a block executing, and in any case it is not running
             if(BlockExecuting != MOTIONBLOCK_NOTDEF){
@@ -198,7 +198,7 @@ void vTask_Actuating(void* arg) {
             }
 
             //if there is no block executing
-            if(BlockStatus == 1){
+            if(BlockStatus == BLOCKSTATUS_FINISHED){
                 //if block finished successfully start standard procedure to determine the next block
 
                 //check if any target has finished
@@ -214,7 +214,7 @@ void vTask_Actuating(void* arg) {
                 xSemaphoreGive(Task_SerialComm_Semaphore);
                 //CHECK IF THIS DOES INDEED WORK, CAUSE NOW ITS JUST A RACE CONDITION
 
-                //check if indeed any new targets want to enter TargetQueue
+                //check if any new targets want to enter TargetQueue
                 while(uxQueueMessagesWaiting(GtoActuating)>0){
                     GTarget* Targ = GTARGET_NOTDEF;
                     if(xQueueReceive(GtoActuating,Targ,10/portTICK_PERIOD_MS) == pdTRUE){

@@ -10,8 +10,9 @@ const uint8_t BLOCKID_WALKFORW_GOING_L = 7;
 const uint8_t BLOCKID_WALKFORW_END_L = 8;
 
 
-
-
+const uint8_t BLOCKSTATUS_RUNNING = 0;
+const uint8_t BLOCKSTATUS_FINISHED = 1;
+const uint8_t BLOCKSTATUS_RUNERROR = 2;
 
 //params object of a motionblock
 class MotionBlockParams{
@@ -40,7 +41,7 @@ class MotionBlock{
     
     Cspace* Cstart = CSPACE_NOTDEF;
 
-    uint8_t LastStatus = BYTENOTDEF; //last status evaluated
+    uint8_t LastStatus = BLOCKSTATUS_FINISHED; //last status evaluated, by default set to Finished
 
     //Motor controllers for each block type
     //given the current Cspace and Trun, compute MotorControl object to employ
@@ -71,16 +72,18 @@ class MotionBlock{
         //update Trun with current timestamp
         Trun = (float) (t-Tstart)*10e-6;
 
+        //TODO: add conditional to test status run error
+
         if(id == BLOCKID_MOVEJOINT){
-            if(Finished_MOVEJOINT(C)){ LastStatus = 1; }
-            else{ LastStatus = 0; }
+            if(Finished_MOVEJOINT(C)){ LastStatus = BLOCKSTATUS_FINISHED; }
+            else{ LastStatus = BLOCKSTATUS_RUNNING; }
         }
         else if(id == BLOCKID_STAND){
-            if(Finished_STAND(C)){ LastStatus = 1; }
-            else{ LastStatus = 0; }
+            if(Finished_STAND(C)){ LastStatus = BLOCKSTATUS_FINISHED; }
+            else{ LastStatus = BLOCKSTATUS_RUNNING; }
         }
         else{
-            LastStatus = 1;
+            LastStatus = BLOCKSTATUS_FINISHED;
         }
 
         return LastStatus;
@@ -90,7 +93,7 @@ class MotionBlock{
     MotionBlock(uint8_t id_, uint32_t t, MotionBlockParams* p, Cspace* c){
         id = id_; Tstart = t;
         params = p; Cstart = c;
-
+        LastStatus = BLOCKSTATUS_RUNNING;
     }
 };
 

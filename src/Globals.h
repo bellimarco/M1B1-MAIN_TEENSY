@@ -40,7 +40,6 @@ MotorControlStruct MOTORCONTROL_NOTDEF = MotorControlStruct{
 
 
 
-SemaphoreHandle_t  WorldCspace_Mutex = xSemaphoreCreateBinary();
 
 class Cspace{
     public:
