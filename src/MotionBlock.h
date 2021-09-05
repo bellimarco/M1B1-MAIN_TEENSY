@@ -68,6 +68,9 @@ class MotionBlock{
     bool Finished_STAND(Cspace* C);
 
 
+    //general error functions, implemented in Status function for particular block types
+    bool Error_LostStand(Cspace* C);
+
     //status of the block given t and C, 0->running, 1->finished, 2->failed
     uint8_t Status(uint32_t t, Cspace* C){
         //update Trun with current timestamp
@@ -76,13 +79,15 @@ class MotionBlock{
         //TODO: add conditional to test status run error
 
         if(id == BLOCKID_MOVEJOINT){
+            //no error for movejoint
             LastStatus = Finished_MOVEJOINT(C)?BLOCKSTATUS_FINISHED:BLOCKSTATUS_RUNNING;
         }
         else if(id == BLOCKID_STAND){
-            LastStatus = Finished_STAND(C)?BLOCKSTATUS_FINISHED:BLOCKSTATUS_RUNNING;
+            LastStatus = Error_LostStand(C)?BLOCKSTATUS_RUNERROR:
+                        (Finished_STAND(C)?BLOCKSTATUS_FINISHED:BLOCKSTATUS_RUNNING);
         }
         else{
-            LastStatus = BLOCKSTATUS_FINISHED;
+            LastStatus = BLOCKSTATUS_RUNERROR;
         }
 
         return LastStatus;
@@ -109,6 +114,13 @@ void DisposeMotionBlock(MotionBlock* b){
 
 
 
+//when Cspace is in such a configuration that the STAND controller can't get
+//  the robot upright by itself
+bool MotionBlock::Error_LostStand(Cspace* C){
+
+    return false;
+}
+
 
 //block type specific functions
 
@@ -132,5 +144,3 @@ bool MotionBlock::Finished_STAND(Cspace* C){
 
     return false;
 }
-
-
