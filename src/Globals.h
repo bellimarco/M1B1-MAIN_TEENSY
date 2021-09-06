@@ -2,6 +2,72 @@
 //also a place to mention important notes,
 //like hardcoded variables throughout the program to not lose track of'em
 
+
+
+bool MotorDriversEnabled = false;
+void MotorDriversEnable(){
+    MotorDriversEnabled = true;
+    #ifdef USE_MOTORS
+    digitalWrite(DRIVE_EN1_pin,HIGH);
+    digitalWrite(DRIVE_EN2_pin,HIGH);
+    digitalWrite(DRIVE_EN3_pin,HIGH);
+    digitalWrite(DRIVE_EN4_pin,HIGH);
+    #endif
+}
+void MotorDriversDisable(){
+    MotorDriversEnabled = false;
+    #ifdef USE_MOTORS
+    digitalWrite(DRIVE_EN1_pin,LOW);
+    digitalWrite(DRIVE_EN2_pin,LOW);
+    digitalWrite(DRIVE_EN3_pin,LOW);
+    digitalWrite(DRIVE_EN4_pin,LOW);
+    #endif
+}
+
+
+
+//battery management
+//battery reading is managed by SerialComm
+//ControlCode 2 prints battery charge to the serial Log port
+
+//current battery charge from 0 to 1
+float BatteryCharge = 1;
+//if Battery switches to empty, motors are disabled
+//  and communication with teensies is discountinued
+bool BatteryEmpty = false;
+//divider constant * Vref / analog resolution
+const float BatteryK = 6.01511 * 3.3 /1024;
+//4p LIPO battery charge map: 50% -> 14.8 Volts, 0% -> 12.8V, 100% -> 16.8V
+float BatteryVoltageToCharge(float V){ return (V-12.8)/4; }
+
+void UpdateBatteryCharge(){
+    #ifdef USE_BATTERY
+    BatteryCharge = BatteryVoltageToCharge(analogRead(BATTERYpin)*BatteryK);
+
+    if(BatteryCharge < 0.05){
+        if(!BatteryEmpty){
+            BatteryEmpty = true;
+
+            MotorDriversDisable();
+            LogPrintln("Battery Empty, Motor Drivers Disabled");
+        }
+    }
+    else if(BatteryCharge < 0.1){
+        LogPrintln("Battery Charge Very Low");
+    }else if(BatteryCharge < 0.25){
+        LogPrintln("Battery Charge Low");
+    }
+
+
+
+    #else
+    BatteryCharge = 1;
+    #endif
+}
+
+
+
+
 //how many motors, a bit vague but anyways useful throughout
 //if this is changed, remember considering:
 //  TeensyReader configurations (receiving MotorNumberT1*2 values from teensy 1)

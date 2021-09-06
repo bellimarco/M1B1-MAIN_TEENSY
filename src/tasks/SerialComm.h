@@ -26,7 +26,13 @@ void GSendToTask(GTarget* Targ){
         uint8_t c = Targ->params->b0;
         if(c != BYTENOTDEF){
             if(c==0){ LogPrintln("exec/===Turning off log==="); Log_ = false; }
-            else if(c==1){ Log_ = true; LogPrintln("exec/===Turned on log==="); }
+            else if(c==1){ Log_ = true; }
+            else if(c==2){
+                LogPrintln("exec/ Battery Charge: "+String(BatteryCharge*100,1)+"%");
+            }
+            else{
+                LogPrintln("exec/===Control Code not defined===");
+            }
         }else{
             LogPrintln("exec/====Control test code=====");
         }
@@ -217,6 +223,7 @@ void vTask_SerialComm(void* arg) {
     }
 
 
+    UpdateBatteryCharge();
 
     xSemaphoreTake(Task_SerialComm_Semaphore,SerialCommDelay/portTICK_PERIOD_MS);
   }
