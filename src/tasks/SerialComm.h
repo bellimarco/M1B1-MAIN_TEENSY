@@ -29,7 +29,7 @@ void GSendToTask(GTarget* Targ){
         uint8_t c = Targ->params->b0;
         if(c != BYTENOTDEF){
             if(c==0){ LogPrintln("exec/===Turning off log==="); Log_ = false; }
-            else if(c==1){ Log_ = true; }
+            else if(c==1){ Log_ = true; LogPrintln("exec/===Turned on log==="); }
             else if(c==2){
                 LogPrintln("exec/ Battery Charge: "+String(BatteryCharge*100,1)+"%");
             }
