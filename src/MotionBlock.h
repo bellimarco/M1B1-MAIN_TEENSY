@@ -11,7 +11,7 @@ const uint8_t BLOCKID_WALKFORW_GOING_L = 7;
 const uint8_t BLOCKID_WALKFORW_END_L = 8;
 
 const uint8_t BlocksSize = 9;
-const Sting BLOCK_DICT[BlocksSize] = {
+const String BLOCK_DICT[BlocksSize] = {
     "NOTDEF",
     "MOVEJOINT",
     "STAND",
@@ -21,7 +21,7 @@ const Sting BLOCK_DICT[BlocksSize] = {
     "WALKFORW_START_L",
     "WALKFORW_GOING_L",
     "WALKFORW_END_L"
-}
+};
 
 const uint8_t BLOCKSTATUS_RUNNING = 0;
 const uint8_t BLOCKSTATUS_FINISHED = 1;
@@ -131,7 +131,7 @@ MotionBlock* MOTIONBLOCK_NOTDEF = new MotionBlock();
 //delete motionblock object and its subobjects from memomry
 void DisposeMotionBlock(MotionBlock* b){
     #ifdef Log_GcodeLifeCycle
-    LogPrintln("GCycle/ Disposing block: "+b);
+    LogPrintln("GCycle/ Disposing block: "+String((int)b));
     #endif
 
     if(b != MOTIONBLOCK_NOTDEF){

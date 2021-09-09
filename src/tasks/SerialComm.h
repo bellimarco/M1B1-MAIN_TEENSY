@@ -78,7 +78,7 @@ void vTask_SerialComm(void* arg) {
                 #endif
                 GTarget* Targ = new GTarget(serialIn);
                 #ifdef Log_GcodeCycle
-                LogPrintln("GCycle/ created target: "+Targ);
+                LogPrintln("GCycle/ created target: "+String((int)Targ));
                 #endif
 
                 LogPrintln("newtarg/ FREEMEMORY: "+String(freeMemory()));
@@ -124,7 +124,7 @@ void vTask_SerialComm(void* arg) {
                         #endif
                     }
 
-                    #if defined (Log_GcodeMonitoring || Log_GcodeLifeCycle)
+                    #if defined (Log_GcodeMonitoring) || defined (Log_GcodeLifeCycle)
                     PrintGBuffer();
                     #endif
                 }

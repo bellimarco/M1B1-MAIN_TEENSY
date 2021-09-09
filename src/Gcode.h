@@ -164,7 +164,7 @@ class GTarget{
     //based on target params, timestamp and given cspace, set goals object
 	void SetGoals(uint32_t t, Cspace* C){
         #ifdef Log_GcodeLifeCycle
-        LogPrintln("GCycle/ GTarget Set Goals: "+t->gcode_string2);
+        LogPrintln("GCycle/ GTarget Set Goals: "+gcode_string2);
         #endif
 
         if(gcode == GCODE_MOVEJOINT){
@@ -204,7 +204,7 @@ GTarget* GTARGET_NOTDEF = new GTarget(String(GCODE_NOTDEF));
 //delete gtarget object and its subobjects from memomry
 void DisposeGTarget(GTarget* t){
     #ifdef Log_GcodeLifeCycle
-    LogPrintln("GCycle/ Disposing target: "+t);
+    LogPrintln("GCycle/ Disposing target: "+String((int)t));
     #endif
 
     if(t != GTARGET_NOTDEF){

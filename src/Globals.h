@@ -89,9 +89,10 @@ struct MotorControlStruct{
     float val[MotorNumber];
     uint8_t mode[MotorNumber];
 };
+//when motorcontrol is not defined, just send 0 torque target
 MotorControlStruct MOTORCONTROL_NOTDEF = MotorControlStruct{
-    {FLOATNOTDEF,FLOATNOTDEF,FLOATNOTDEF,FLOATNOTDEF,FLOATNOTDEF,FLOATNOTDEF,FLOATNOTDEF,FLOATNOTDEF},
-    {BYTENOTDEF,BYTENOTDEF,BYTENOTDEF,BYTENOTDEF,BYTENOTDEF,BYTENOTDEF,BYTENOTDEF,BYTENOTDEF}
+    {0,0,0,0,0,0,0,0},
+    {0,0,0,0,0,0,0,0}
 };
 
 //inter-teensy serial communication

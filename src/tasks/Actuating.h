@@ -170,7 +170,7 @@ MotionBlock* PlanBlocks(uint32_t t, Cspace* C){
         params = new MotionBlockParams(TargetsExecuting[GCODE_MOVEJOINT]->goals);
         block = new MotionBlock(BLOCKID_MOVEJOINT,t,params,C);
         #ifdef Log_GcodeLifeCycle
-        LogPrintln("GCycle/ created block: "+block);
+        LogPrintln("GCycle/ created block: "+String((int)block));
         #endif
         //there is only this one motionblock for MOVEJOINT target
         TargetsExecuting[GCODE_MOVEJOINT]->BlocksFinished = true;
@@ -281,7 +281,7 @@ void vTask_Actuating(void* arg) {
                     GTarget* Targ = GTARGET_NOTDEF;
                     if(xQueueReceive(GtoActuating,Targ,10/portTICK_PERIOD_MS) == pdTRUE){
                         #ifdef Log_GcodeLifeCycle
-                        LogPrintln("GCycle/ GtoActuating new target: "+t->gcode_string2);
+                        LogPrintln("GCycle/ GtoActuating new target: "+Targ->gcode_string2);
                         #endif
                         TargetQueue[Targ->gcode] = Targ;
 
@@ -310,9 +310,7 @@ void vTask_Actuating(void* arg) {
         //if existing block is runnning, send control parameters to secondary teensies
         if(BlockStatus == 0 && BlockExecuting != MOTIONBLOCK_NOTDEF){
             MotorControlTarget = BlockExecuting->BlockControl(Cnow);
-            if(MotorControlTarget != MOTORCONTROL_NOTDEF){
-                SendMotorControl(MotorControlTarget);
-            }
+            SendMotorControl(MotorControlTarget);
         }
 
 
