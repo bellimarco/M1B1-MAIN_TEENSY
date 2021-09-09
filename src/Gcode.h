@@ -114,6 +114,7 @@ GTargetGoals* GTARGETGOALS_NOTDEF = new GTargetGoals();
 class GTarget{
     public:
 	String gcode_string = GCODE_DICT[GCODE_NOTDEF];
+    String gcode_string2 = "...";   //for debug
 	uint8_t gcode = GCODE_NOTDEF;
 	
 	GTargetParams* params = GTARGETPARAMS_NOTDEF;
@@ -149,10 +150,23 @@ class GTarget{
         else{ //GCODE_NOTDEF
             params = GTARGETPARAMS_NOTDEF;
         }
+
+        #ifdef Log_GcodeLifeCycle
+        gcode_string2 = GCODE_DICT[gcode];
+        gcode_string2 += ", "+(params->b0 != BYTENOTDEF)?String(params->b0):"/";
+        gcode_string2 += ", "+(params->b1 != BYTENOTDEF)?String(params->b1):"/";
+        gcode_string2 += ", "+(params->f0 != BYTENOTDEF)?String(params->f0,3):"/";
+        gcode_string2 += ", "+(params->f1 != BYTENOTDEF)?String(params->f1,3):"/";
+        LogPrintln("GCycle/ created target: "+gcode_string2);
+        #endif
 	}
 	
     //based on target params, timestamp and given cspace, set goals object
 	void SetGoals(uint32_t t, Cspace* C){
+        #ifdef Log_GcodeLifeCycle
+        LogPrintln("GCycle/ GTarget Set Goals: "+t->gcode_string2);
+        #endif
+
         if(gcode == GCODE_MOVEJOINT){
             goals = new GTargetGoals(params);
         }
@@ -167,7 +181,7 @@ class GTarget{
 
     bool Finished_MOVEJOINT(Cspace* C);
     bool Finished_STAND(Cspace* C);
-	
+
 	bool Finished(Cspace* C){
 		if(!BlocksFinished){
 			if(gcode == GCODE_MOVEJOINT){
@@ -189,6 +203,10 @@ GTarget* GTARGET_NOTDEF = new GTarget(String(GCODE_NOTDEF));
 
 //delete gtarget object and its subobjects from memomry
 void DisposeGTarget(GTarget* t){
+    #ifdef Log_GcodeLifeCycle
+    LogPrintln("GCycle/ Disposing target: "+t);
+    #endif
+
     if(t != GTARGET_NOTDEF){
         if(t->params != GTARGETPARAMS_NOTDEF){ delete t->params; t->params = nullptr; }
         if(t->goals != GTARGETGOALS_NOTDEF){ delete t->goals; t->goals = nullptr; }
@@ -245,6 +263,16 @@ void GCodeSetup(){
     }
 }
 
+void PrintGBuffer(){
+    String f = "";
+    for(byte j=GBufferSize; j>0; j--){
+    for(byte i=0; i<GcodesSize; i++){
+        f+="  "+GBuffer[i][j-1]->gcode_string;
+    }
+    f+="\n";
+    }
+    LogPrintln(f);
+}
 
 
 

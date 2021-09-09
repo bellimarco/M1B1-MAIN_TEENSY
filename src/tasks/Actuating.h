@@ -103,6 +103,9 @@ GTarget* TargetQueue[GcodesSize];
 GTarget* TargetsExecuting[GcodesSize];
 
 void ExecutingTarget(GTarget* t){
+    #ifdef Log_GcodeLifeCycle
+    LogPrintln("GCycle/ Executing Target: "+t->gcode_string2);
+    #endif
     //send to GExecuting, push to TargetsExecuting, pop from TargetQueue
     if(xQueueSend(GExecuting,t,50/portTICK_PERIOD_MS)==pdTRUE){
         TargetsExecuting[t->gcode] = t;
@@ -111,6 +114,9 @@ void ExecutingTarget(GTarget* t){
 }
 //called when the task has finished a target
 void ExecutedTarget(GTarget* t){
+    #ifdef Log_GcodeLifeCycle
+    LogPrintln("GCycle/ Executed Target: "+t->gcode_string2);
+    #endif
     //send to GExecuted, pop from TargetsExecuting
     if(xQueueSend(GExecuted,t,50/portTICK_PERIOD_MS)==pdTRUE){
         TargetsExecuting[t->gcode] = GTARGET_NOTDEF;
@@ -142,6 +148,9 @@ const uint8_t LastBlocksLength = 6;
 uint8_t LastBlocksTail = 0;
 MotionBlock* LastBlocks[LastBlocksLength];
 void LastBlocksPush(MotionBlock* b){
+    #ifdef Log_GcodeLifeCycle
+    LogPrintln("GCycle/ Pushing to lastblocks: "+b->block_string);
+    #endif
     DisposeMotionBlock(LastBlocks[LastBlocksTail]);
     LastBlocks[LastBlocksTail] = b;
     LastBlocksTail = (LastBlocksTail+1<LastBlocksLength)?LastBlocksTail+1:0;
@@ -150,6 +159,9 @@ void LastBlocksPush(MotionBlock* b){
 
 //given the current TargetsExecuting, TargetQueue, LastBlocks arrays,
 MotionBlock* PlanBlocks(uint32_t t, Cspace* C){
+    #ifdef Log_GcodeLifeCycle
+    LogPrintln("GCycle/ PlanBlocks Start");
+    #endif
     MotionBlockParams* params = MOTIONBLOCKPARAMS_NOTDEF;
     MotionBlock* block = MOTIONBLOCK_NOTDEF;
 
@@ -157,9 +169,16 @@ MotionBlock* PlanBlocks(uint32_t t, Cspace* C){
         //block params = target goals
         params = new MotionBlockParams(TargetsExecuting[GCODE_MOVEJOINT]->goals);
         block = new MotionBlock(BLOCKID_MOVEJOINT,t,params,C);
+        #ifdef Log_GcodeLifeCycle
+        LogPrintln("GCycle/ created block: "+block);
+        #endif
         //there is only this one motionblock for MOVEJOINT target
         TargetsExecuting[GCODE_MOVEJOINT]->BlocksFinished = true;
     }
+
+    #ifdef Log_GcodeLifeCycle
+    LogPrintln("GCycle/ PlanBlocks Finish");
+    #endif
 
     return block;
 }
@@ -261,7 +280,9 @@ void vTask_Actuating(void* arg) {
                 while(uxQueueMessagesWaiting(GtoActuating)>0){
                     GTarget* Targ = GTARGET_NOTDEF;
                     if(xQueueReceive(GtoActuating,Targ,10/portTICK_PERIOD_MS) == pdTRUE){
-                        
+                        #ifdef Log_GcodeLifeCycle
+                        LogPrintln("GCycle/ GtoActuating new target: "+t->gcode_string2);
+                        #endif
                         TargetQueue[Targ->gcode] = Targ;
 
                         TryPushToExecuting(presentT, Cnow, Targ);
@@ -275,7 +296,7 @@ void vTask_Actuating(void* arg) {
                 BlockExecuting = PlanError(presentT, Cnow, BlockStatus);
             }
 
-            //if a no new block entered directly execution break from while loop to continue with the task loop
+            //if a no new block entered directly execution, break from while loop to continue with the task loop
             if(BlockExecuting == MOTIONBLOCK_NOTDEF){
                 break;
             }
@@ -289,7 +310,9 @@ void vTask_Actuating(void* arg) {
         //if existing block is runnning, send control parameters to secondary teensies
         if(BlockStatus == 0 && BlockExecuting != MOTIONBLOCK_NOTDEF){
             MotorControlTarget = BlockExecuting->BlockControl(Cnow);
-            SendMotorControl(MotorControlTarget);
+            if(MotorControlTarget != MOTORCONTROL_NOTDEF){
+                SendMotorControl(MotorControlTarget);
+            }
         }
 
 

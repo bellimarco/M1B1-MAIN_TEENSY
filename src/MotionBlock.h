@@ -1,3 +1,4 @@
+
 //block type id
 const uint8_t BLOCKID_NOTDEF = 0;
 const uint8_t BLOCKID_MOVEJOINT = 1;
@@ -9,11 +10,24 @@ const uint8_t BLOCKID_WALKFORW_START_L = 6;
 const uint8_t BLOCKID_WALKFORW_GOING_L = 7;
 const uint8_t BLOCKID_WALKFORW_END_L = 8;
 
+const uint8_t BlocksSize = 9;
+const Sting BLOCK_DICT[BlocksSize] = {
+    "NOTDEF",
+    "MOVEJOINT",
+    "STAND",
+    "WALKFORW_START_R",
+    "WALKFORW_GOING_R",
+    "WALKFORW_END_R",
+    "WALKFORW_START_L",
+    "WALKFORW_GOING_L",
+    "WALKFORW_END_L"
+}
 
 const uint8_t BLOCKSTATUS_RUNNING = 0;
 const uint8_t BLOCKSTATUS_FINISHED = 1;
 const uint8_t BLOCKSTATUS_ERROR = 2;      //general block error
 const uint8_t BLOCKSTATUS_LOSTSTAND = 3;  //lost standing equilibrium status
+
 
 //params object of a motionblock
 class MotionBlockParams{
@@ -34,6 +48,7 @@ MotionBlockParams* MOTIONBLOCKPARAMS_NOTDEF = new MotionBlockParams();
 
 class MotionBlock{
     public:
+    String block_string = "...";    //for debug
     
     uint8_t id = BLOCKID_NOTDEF;
     MotionBlockParams* params = MOTIONBLOCKPARAMS_NOTDEF;
@@ -99,6 +114,15 @@ class MotionBlock{
         id = id_; Tstart = t;
         params = p; Cstart = c;
         LastStatus = BLOCKSTATUS_RUNNING;
+
+        #ifdef Log_GcodeLifeCycle
+        block_string = BLOCK_DICT[id];
+        block_string += ", "+(params->b0 != BYTENOTDEF)?String(params->b0):"/";
+        block_string += ", "+(params->b1 != BYTENOTDEF)?String(params->b1):"/";
+        block_string += ", "+(params->f0 != BYTENOTDEF)?String(params->f0):"/";
+        block_string += ", "+(params->f1 != BYTENOTDEF)?String(params->f1):"/";
+        LogPrintln("GCycle/ created block: "+block_string);
+        #endif
     }
 };
 
@@ -106,6 +130,10 @@ MotionBlock* MOTIONBLOCK_NOTDEF = new MotionBlock();
 
 //delete motionblock object and its subobjects from memomry
 void DisposeMotionBlock(MotionBlock* b){
+    #ifdef Log_GcodeLifeCycle
+    LogPrintln("GCycle/ Disposing block: "+b);
+    #endif
+
     if(b != MOTIONBLOCK_NOTDEF){
         if(b->params != MOTIONBLOCKPARAMS_NOTDEF){ delete b->params; b->params = nullptr; }
         delete b; b = nullptr;
