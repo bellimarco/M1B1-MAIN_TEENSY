@@ -1,7 +1,7 @@
 //the Gcodes are defined by a byte number at the start of the code,
 //  and an optional number of float parameters after the letters,
-//  paramaters are often referced by #1,#2,#3, and are separated by '_'
-//example: 4_1_-56.2, CC_90
+//  paramaters are referenced by #0,#1,#2, and are separated by '_'
+//example: "4_1_-56.2" means: gcode 4 with params #0 = 1 and #1 = -56.2
 
 
 //parse parameter p for gcode g
