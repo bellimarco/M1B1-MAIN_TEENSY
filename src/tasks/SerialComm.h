@@ -63,6 +63,8 @@ void vTask_SerialComm(void* arg) {
     LogPrintln("GCycle/ GTargetGoals not defined: "+String((int)GTARGETGOALS_NOTDEF));
     #endif
 
+    uint32_t presentT = micros();
+
     char c;
     String serialIn = "";
 
@@ -71,8 +73,15 @@ void vTask_SerialComm(void* arg) {
 
 
     while (1) {
-        LogPrintln("memory: "+String(freeMemory()));
 
+        presentT = micros();
+
+        #ifdef Log_SerialCommPing
+        if(presentT>Ping_t){
+            Ping_t = presentT + PingT;
+            LogPrintln("\tPing. memory: "+String(freeMemory()));
+        }
+        #endif
 
         //listen for incoming messages
         while(SerialGcode.available()){

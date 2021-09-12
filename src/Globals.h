@@ -4,6 +4,16 @@
 
 
 
+
+#ifdef Log_SerialCommPing
+const uint32_t PingT = 1e6; //micros
+uint32_t Ping_t = 0;
+#endif
+
+
+
+
+
 bool MotorDriversEnabled = false;
 void MotorDriversEnable(){
     MotorDriversEnabled = true;
