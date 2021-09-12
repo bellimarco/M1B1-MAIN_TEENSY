@@ -1,6 +1,6 @@
 //default constants that represent undefined values
 const uint8_t BYTENOTDEF = 255;
-const float FLOATNOTDEF = -123456789;
+const float FLOATNOTDEF = -123456789.9;
 
 
 #ifdef __arm__

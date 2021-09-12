@@ -113,7 +113,7 @@ GTargetGoals* GTARGETGOALS_NOTDEF = new GTargetGoals();
 //higher level object derived from gcode string
 class GTarget{
     public:
-	String gcode_string = GCODE_DICT[GCODE_NOTDEF];
+	String gcode_string = GCODE_NOTDEF;
     String gcode_string2 = "...";   //for debug
 	uint8_t gcode = GCODE_NOTDEF;
 	
@@ -123,6 +123,7 @@ class GTarget{
     //if at next call of Finished (i.e. after execution of the current block) the target is finished
 	bool BlocksFinished = false;
 	
+    GTarget(){}
 	GTarget(String s){
 		gcode_string = s;
 		
@@ -153,20 +154,15 @@ class GTarget{
 
         #ifdef Log_GcodeLifeCycle
         gcode_string2 = GCODE_DICT[gcode];
-        gcode_string2 += ", "+(params->b0 != BYTENOTDEF)?String(params->b0):"/";
-        gcode_string2 += ", "+(params->b1 != BYTENOTDEF)?String(params->b1):"/";
-        gcode_string2 += ", "+(params->f0 != BYTENOTDEF)?String(params->f0,3):"/";
-        gcode_string2 += ", "+(params->f1 != BYTENOTDEF)?String(params->f1,3):"/";
-        LogPrintln("GCycle/ created target: "+gcode_string2);
+        gcode_string2 += (params->b0 != BYTENOTDEF)?", "+String(params->b0):", /";
+        gcode_string2 += (params->b1 != BYTENOTDEF)?", "+String(params->b1):", /";
+        gcode_string2 += (params->f0 != FLOATNOTDEF)?", "+String(params->f0,2):", /";
+        gcode_string2 += (params->f1 != FLOATNOTDEF)?", "+String(params->f1,2):", /";
         #endif
 	}
 	
     //based on target params, timestamp and given cspace, set goals object
 	void SetGoals(uint32_t t, Cspace* C){
-        #ifdef Log_GcodeLifeCycle
-        LogPrintln("GCycle/ GTarget Set Goals: "+gcode_string2);
-        #endif
-
         if(gcode == GCODE_MOVEJOINT){
             goals = new GTargetGoals(params);
         }
@@ -199,12 +195,12 @@ class GTarget{
 		}
 	}
 };
-GTarget* GTARGET_NOTDEF = new GTarget(String(GCODE_NOTDEF));
+GTarget* GTARGET_NOTDEF = new GTarget();
 
 //delete gtarget object and its subobjects from memomry
 void DisposeGTarget(GTarget* t){
     #ifdef Log_GcodeLifeCycle
-    LogPrintln("GCycle/ Disposing target: "+String((int)t));
+    LogPrintln("GCycle/ Disposing target: "+String((int)t)+", "+t->gcode_string2);
     #endif
 
     if(t != GTARGET_NOTDEF){

@@ -121,7 +121,6 @@ class MotionBlock{
         block_string += ", "+(params->b1 != BYTENOTDEF)?String(params->b1):"/";
         block_string += ", "+(params->f0 != BYTENOTDEF)?String(params->f0):"/";
         block_string += ", "+(params->f1 != BYTENOTDEF)?String(params->f1):"/";
-        LogPrintln("GCycle/ created block: "+block_string);
         #endif
     }
 };
@@ -131,7 +130,7 @@ MotionBlock* MOTIONBLOCK_NOTDEF = new MotionBlock();
 //delete motionblock object and its subobjects from memomry
 void DisposeMotionBlock(MotionBlock* b){
     #ifdef Log_GcodeLifeCycle
-    LogPrintln("GCycle/ Disposing block: "+String((int)b));
+    LogPrintln("GCycle/ Disposing block: "+String((int)b)+", "+b->block_string);
     #endif
 
     if(b != MOTIONBLOCK_NOTDEF){

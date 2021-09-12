@@ -10,7 +10,7 @@ SemaphoreHandle_t  Task_SerialComm_Semaphore = xSemaphoreCreateCounting(3,0);
 SemaphoreHandle_t  Task_Sensitive_Semaphore = xSemaphoreCreateCounting(3,0);
 SemaphoreHandle_t  Task_Actuating_Semaphore = xSemaphoreCreateCounting(3,0);
 //loop delays for each task
-#define SerialCommDelay 10
+#define SerialCommDelay 100
 #define SensitiveDelay 10
 #define ActuatingDelay 25
 //Task defining files

@@ -104,10 +104,10 @@ GTarget* TargetsExecuting[GcodesSize];
 
 void ExecutingTarget(GTarget* t){
     #ifdef Log_GcodeLifeCycle
-    LogPrintln("GCycle/ Executing Target: "+t->gcode_string2);
+    LogPrintln("GCycle/ ActuExecuting Target: "+String((int)t)+", "+t->gcode_string2);
     #endif
     //send to GExecuting, push to TargetsExecuting, pop from TargetQueue
-    if(xQueueSend(GExecuting,t,50/portTICK_PERIOD_MS)==pdTRUE){
+    if(xQueueSend(GExecuting,&t,50/portTICK_PERIOD_MS)==pdTRUE){
         TargetsExecuting[t->gcode] = t;
         TargetQueue[t->gcode] = GTARGET_NOTDEF;
     }
@@ -115,10 +115,10 @@ void ExecutingTarget(GTarget* t){
 //called when the task has finished a target
 void ExecutedTarget(GTarget* t){
     #ifdef Log_GcodeLifeCycle
-    LogPrintln("GCycle/ Executed Target: "+t->gcode_string2);
+    LogPrintln("GCycle/ ActuExecuted Target: "+String((int)t)+", "+t->gcode_string2);
     #endif
     //send to GExecuted, pop from TargetsExecuting
-    if(xQueueSend(GExecuted,t,50/portTICK_PERIOD_MS)==pdTRUE){
+    if(xQueueSend(GExecuted,&t,50/portTICK_PERIOD_MS)==pdTRUE){
         TargetsExecuting[t->gcode] = GTARGET_NOTDEF;
     }
 }
@@ -131,6 +131,9 @@ void TryPushToExecuting(uint32_t t, Cspace* C, GTarget* T){
         }
     }
     if(compatible){
+        #ifdef Log_GcodeLifeCycle
+        LogPrintln("GCycle/ GTarget SetGoals: "+String((int)T)+", "+T->gcode_string2);
+        #endif
         T->SetGoals(t, C);
         ExecutingTarget(T);
     }
@@ -149,7 +152,7 @@ uint8_t LastBlocksTail = 0;
 MotionBlock* LastBlocks[LastBlocksLength];
 void LastBlocksPush(MotionBlock* b){
     #ifdef Log_GcodeLifeCycle
-    LogPrintln("GCycle/ Pushing to lastblocks: "+b->block_string);
+    LogPrintln("GCycle/ Pushing to lastblocks: "+String((int)b)+", "+b->block_string);
     #endif
     DisposeMotionBlock(LastBlocks[LastBlocksTail]);
     LastBlocks[LastBlocksTail] = b;
@@ -159,9 +162,6 @@ void LastBlocksPush(MotionBlock* b){
 
 //given the current TargetsExecuting, TargetQueue, LastBlocks arrays,
 MotionBlock* PlanBlocks(uint32_t t, Cspace* C){
-    #ifdef Log_GcodeLifeCycle
-    LogPrintln("GCycle/ PlanBlocks Start");
-    #endif
     MotionBlockParams* params = MOTIONBLOCKPARAMS_NOTDEF;
     MotionBlock* block = MOTIONBLOCK_NOTDEF;
 
@@ -170,15 +170,11 @@ MotionBlock* PlanBlocks(uint32_t t, Cspace* C){
         params = new MotionBlockParams(TargetsExecuting[GCODE_MOVEJOINT]->goals);
         block = new MotionBlock(BLOCKID_MOVEJOINT,t,params,C);
         #ifdef Log_GcodeLifeCycle
-        LogPrintln("GCycle/ created block: "+String((int)block));
+        LogPrintln("GCycle/ created block: "+String((int)block)+", "+block->block_string);
         #endif
         //there is only this one motionblock for MOVEJOINT target
         TargetsExecuting[GCODE_MOVEJOINT]->BlocksFinished = true;
     }
-
-    #ifdef Log_GcodeLifeCycle
-    LogPrintln("GCycle/ PlanBlocks Finish");
-    #endif
 
     return block;
 }
@@ -204,6 +200,11 @@ void vTask_Actuating(void* arg) {
   
     LogPrintln("Actuating/ Warmup: "+String(1500)+"ms\n");
     vTaskDelay(1500/portTICK_PERIOD_MS);
+
+    #ifdef Log_GcodeLifeCycle
+    LogPrintln("GCycle/ MotionBlock not defined: "+String((int)MOTIONBLOCK_NOTDEF));
+    LogPrintln("GCycle/ BlockParams not defined: "+String((int)MOTIONBLOCKPARAMS_NOTDEF));
+    #endif
     
     //timemark of the previous loop
     uint32_t presentT = micros();
@@ -232,7 +233,7 @@ void vTask_Actuating(void* arg) {
 
 
 
-        //taking latest WorldCspace available, remember it has an expiring time
+        //taking latest WorldCspace available, remember it has an expiring time (details at WorldCspace definition)
         Cspace* Cnow = WorldCspace[WorldCspaceTail];
 
         uint8_t BlockStatus = (BlockExecuting==MOTIONBLOCK_NOTDEF)?
@@ -278,10 +279,10 @@ void vTask_Actuating(void* arg) {
 
                 //check if any new targets want to enter TargetQueue
                 while(uxQueueMessagesWaiting(GtoActuating)>0){
-                    GTarget* Targ = GTARGET_NOTDEF;
-                    if(xQueueReceive(GtoActuating,Targ,10/portTICK_PERIOD_MS) == pdTRUE){
+                    GTarget* Targ;
+                    if(xQueueReceive(GtoActuating,&Targ,10/portTICK_PERIOD_MS) == pdTRUE){
                         #ifdef Log_GcodeLifeCycle
-                        LogPrintln("GCycle/ GtoActuating new target: "+Targ->gcode_string2);
+                        LogPrintln("GCycle/ GtoActuating: "+String((int)Targ)+", "+Targ->gcode_string2);
                         #endif
                         TargetQueue[Targ->gcode] = Targ;
 

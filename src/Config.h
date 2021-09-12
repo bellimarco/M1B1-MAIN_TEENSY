@@ -3,11 +3,11 @@
 
 #define Log            //serial logging of various important info
 
-#define USE_BATTERY   //if battery is used, else power supply is used
+//#define USE_BATTERY   //if battery is used, else power supply is used
 
-#define USE_ESP       //if a esp8266 is used, if not teensy is controlled by usb serial monitor
+//#define USE_ESP       //if a esp8266 is used, if not teensy is controlled by usb serial monitor
 
-#define USE_TEENSY1      //right body parts control
+//#define USE_TEENSY1      //right body parts control
 //#define USE_TEENSY2      //left body parts control
 
 //#define USE_MOTORS  //if motor drivers can be turned on, and will be at setup
