@@ -1,7 +1,13 @@
 
 //send to teensies the motorcontrol variable
 void SendMotorControl(MotorControlStruct C){
-    //!!!remember argument array must have length = MotorNumber
+    #ifdef Log_GcodeLifeCycle
+    String s = "GCycle/ MotorTarg: ";
+    for(uint8_t i=0; i<MotorNumber; i++){
+        s += "("+String(i)+","+String(C.mode[i])+","+String((int32_t)(C.val[i]*1e3))+")";
+    }
+    LogPrintln(s);
+    #endif
 
     byte *b;
     byte datasendBytes[MotorNumber][4];
@@ -154,7 +160,10 @@ void LastBlocksPush(MotionBlock* b){
     #ifdef Log_GcodeLifeCycle
     LogPrintln("GCycle/ Pushing to lastblocks: "+String((int)b)+", "+b->block_string);
     #endif
-    DisposeMotionBlock(LastBlocks[LastBlocksTail]);
+    //blocks are not disposed until they reach the end of LastBlocks
+    if(LastBlocks[LastBlocksTail] != MOTIONBLOCK_NOTDEF){
+        DisposeMotionBlock(LastBlocks[LastBlocksTail]);
+    }
     LastBlocks[LastBlocksTail] = b;
     LastBlocksTail = (LastBlocksTail+1<LastBlocksLength)?LastBlocksTail+1:0;
 }
@@ -166,6 +175,9 @@ MotionBlock* PlanBlocks(uint32_t t, Cspace* C){
     MotionBlock* block = MOTIONBLOCK_NOTDEF;
 
     if(TargetsExecuting[GCODE_MOVEJOINT] != GTARGET_NOTDEF){
+        #ifdef Log_GcodeLifeCycle
+        LogPrintln("GCycle/ PlanBlocks MOVEJOINT started, timestamp: "+String(t));
+        #endif
         //block params = target goals
         params = new MotionBlockParams(TargetsExecuting[GCODE_MOVEJOINT]->goals);
         block = new MotionBlock(BLOCKID_MOVEJOINT,t,params,C);
@@ -282,7 +294,7 @@ void vTask_Actuating(void* arg) {
                     GTarget* Targ;
                     if(xQueueReceive(GtoActuating,&Targ,10/portTICK_PERIOD_MS) == pdTRUE){
                         #ifdef Log_GcodeLifeCycle
-                        LogPrintln("GCycle/ GtoActuating: "+String((int)Targ)+", "+Targ->gcode_string2);
+                        LogPrintln("GCycle/ QueueRecv GtoActuating: "+String((int)Targ)+", "+Targ->gcode_string2);
                         #endif
                         TargetQueue[Targ->gcode] = Targ;
 

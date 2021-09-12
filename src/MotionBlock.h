@@ -37,7 +37,7 @@ class MotionBlockParams{
 	float f0 = FLOATNOTDEF;
 	float f1 = FLOATNOTDEF;
     MotionBlockParams(){ };
-    MotionBlockParams(GTargetGoals* g){ g->b0 = b0; g->b1 = b1; g->f0 = f0; g->f1 = f1; }
+    MotionBlockParams(GTargetGoals* g){ b0 = g->b0; b1 = g->b1; f0 = g->f0; f1 = g->f1; }
     MotionBlockParams(uint8_t b0_){ b0 = b0_; }
     MotionBlockParams(float f0_){ f0 = f0_; }
     MotionBlockParams(float f0_, float f1_){ f0 = f0_; f1 = f1_; }
@@ -90,7 +90,7 @@ class MotionBlock{
     //status of the block given t and C, 0->running, 1->finished, 2->failed
     uint8_t Status(uint32_t t, Cspace* C){
         //update Trun with current timestamp
-        Trun = (float) (t-Tstart)*10e-6;
+        Trun = ((float)(t-Tstart))*1e-6;
 
         //TODO: add conditional to test status run error
 
@@ -117,10 +117,10 @@ class MotionBlock{
 
         #ifdef Log_GcodeLifeCycle
         block_string = BLOCK_DICT[id];
-        block_string += ", "+(params->b0 != BYTENOTDEF)?String(params->b0):"/";
-        block_string += ", "+(params->b1 != BYTENOTDEF)?String(params->b1):"/";
-        block_string += ", "+(params->f0 != BYTENOTDEF)?String(params->f0):"/";
-        block_string += ", "+(params->f1 != BYTENOTDEF)?String(params->f1):"/";
+        block_string += (params->b0 != BYTENOTDEF)?", "+String(params->b0):", /";
+        block_string += (params->b1 != BYTENOTDEF)?", "+String(params->b1):", /";
+        block_string += (params->f0 != FLOATNOTDEF)?", "+String(params->f0):", /";
+        block_string += (params->f1 != FLOATNOTDEF)?", "+String(params->f1):", /";
         #endif
     }
 };

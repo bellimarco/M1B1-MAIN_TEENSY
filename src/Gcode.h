@@ -15,7 +15,7 @@ float GcodeParseFloat(String g, byte p){
     //if indeed found a '_' after p steps, find last index of content befor next '_' or end
     byte m=n;
     while(m<g.length()){ if(g[m]!='_'){ m++; }else{ break; }}
-    if(m>n){ return (g.substring(n,m)).toFloat(); }
+    if(m>n){ return g.substring(n,m).toFloat(); }
     else{ return FLOATNOTDEF; }
 }
 byte GcodeParseByte(String g, byte p){
@@ -28,7 +28,7 @@ byte GcodeParseByte(String g, byte p){
     //if indeed found a '_' after p steps, find last index of content befor next '_' or end
     byte m=n;
     while(m<g.length()){ if(g[m]!='_'){ m++; }else{ break; }}
-    if(m>n){ return (byte)(g.substring(n,m)).toInt(); }
+    if(m>n){ return (byte)g.substring(n,m).toInt(); }
     else{ return BYTENOTDEF; }
 }
 

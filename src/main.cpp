@@ -104,8 +104,8 @@ void setup() {
 
     LogPrintln("\nSetup/ Creating Tasks");
 
-    xTaskCreate(vTask_SerialComm, "SerialComm", 5000, NULL, 5, &Task_SerialComm);
-    xTaskCreate(vTask_Sensitive, "Sensitive", 5000, NULL, 5, &Task_Sensitive);
+    xTaskCreate(vTask_SerialComm, "SerialComm", 10000, NULL, 5, &Task_SerialComm);
+    xTaskCreate(vTask_Sensitive, "Sensitive", 10000, NULL, 5, &Task_Sensitive);
     xTaskCreate(vTask_Actuating, "Actuating", 10000, NULL, 5, &Task_Actuating);
 
 

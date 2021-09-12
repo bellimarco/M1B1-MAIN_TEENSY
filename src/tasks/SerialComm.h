@@ -168,7 +168,7 @@ void vTask_SerialComm(void* arg) {
 
             if(xQueueReceive(GExecuting,&Targ,10/portTICK_PERIOD_MS) == pdTRUE){
                 #ifdef Log_GcodeLifeCycle
-                LogPrintln("GCycle/ GExecuting: "+String((int)Targ)+", "+Targ->gcode_string2);
+                LogPrintln("GCycle/ QueueRecv GExecuting: "+String((int)Targ)+", "+Targ->gcode_string2);
                 #endif
 
                 if(Targ != GTARGET_NOTDEF){
@@ -229,7 +229,7 @@ void vTask_SerialComm(void* arg) {
             GTarget* Targ;
             if(xQueueReceive(GExecuted,&Targ,10/portTICK_PERIOD_MS) == pdTRUE){
                 #ifdef Log_GcodeLifeCycle
-                LogPrintln("GCycle/ GExecuted: "+String((int)Targ)+", "+Targ->gcode_string2);
+                LogPrintln("GCycle/ QueueRecv GExecuted: "+String((int)Targ)+", "+Targ->gcode_string2);
                 #endif
 
                 #ifdef Log_GcodeMonitoring
