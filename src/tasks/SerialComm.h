@@ -79,7 +79,7 @@ void vTask_SerialComm(void* arg) {
         #ifdef Log_SerialCommPing
         if(presentT>Ping_t){
             Ping_t = presentT + PingT;
-            LogPrintln("\tPing. memory: "+String(freeMemory()));
+            LogPrintln("\tPing. timestamp: "+String(presentT)+", memory: "+String(freeMemory()));
         }
         #endif
 
