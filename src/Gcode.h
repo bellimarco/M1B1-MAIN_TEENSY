@@ -152,13 +152,11 @@ class GTarget{
             params = GTARGETPARAMS_NOTDEF;
         }
 
-        #ifdef Log_GcodeLifeCycle
         gcode_string2 = GCODE_DICT[gcode];
         gcode_string2 += (params->b0 != BYTENOTDEF)?", "+String(params->b0):", /";
         gcode_string2 += (params->b1 != BYTENOTDEF)?", "+String(params->b1):", /";
         gcode_string2 += (params->f0 != FLOATNOTDEF)?", "+FloatToString(params->f0):", /";
         gcode_string2 += (params->f1 != FLOATNOTDEF)?", "+FloatToString(params->f1):", /";
-        #endif
 	}
 	
     //based on target params, timestamp and given cspace, set goals object

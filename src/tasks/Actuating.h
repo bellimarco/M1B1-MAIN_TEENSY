@@ -110,7 +110,7 @@ GTarget* TargetsExecuting[GcodesSize];
 
 void ExecutingTarget(GTarget* t){
     #ifdef Log_GcodeLifeCycle
-    LogPrintln("GCycle/ ActuExecuting Target: "+String((int)t)+", "+t->gcode_string2);
+    LogPrintln("Actu/ Executing Target: "+String((int)t)+", "+t->gcode_string2);
     #endif
     //send to GExecuting, push to TargetsExecuting, pop from TargetQueue
     if(xQueueSend(GExecuting,&t,50/portTICK_PERIOD_MS)==pdTRUE){
@@ -120,9 +120,7 @@ void ExecutingTarget(GTarget* t){
 }
 //called when the task has finished a target
 void ExecutedTarget(GTarget* t){
-    #ifdef Log_GcodeLifeCycle
-    LogPrintln("GCycle/ ActuExecuted Target: "+String((int)t)+", "+t->gcode_string2);
-    #endif
+    LogPrintln("Actu/ Executed Target: "+String((int)t)+", "+t->gcode_string2);
     //send to GExecuted, pop from TargetsExecuting
     if(xQueueSend(GExecuted,&t,50/portTICK_PERIOD_MS)==pdTRUE){
         TargetsExecuting[t->gcode] = GTARGET_NOTDEF;

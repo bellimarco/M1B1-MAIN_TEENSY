@@ -60,12 +60,15 @@ void vTask_Sensitive(void* arg) {
 
         #ifdef USE_ENC
         ENCupdate(ENC_RAD,ENC_RADS);
-        #endif
 
-        LogPrint(ENC_RAD[0]); LogPrint("\t"); LogPrint(ENC_RAD[1]); LogPrint("\t");
-        LogPrint(ENC_RAD[2]); LogPrint("\t"); LogPrint(ENC_RAD[3]); LogPrint("\t");
-        LogPrint(ENC_RADS[0]); LogPrint("\t"); LogPrint(ENC_RADS[1]); LogPrint("\t");
-        LogPrint(ENC_RADS[2]); LogPrint("\t"); LogPrint(ENC_RADS[3]); LogPrint("\n");
+        #ifdef Log_ENCdata
+        LogPrint("ENC: (");
+        LogPrint(ENC_RAD[0]); LogPrint("  "); LogPrint(ENC_RAD[1]); LogPrint(" ");
+        LogPrint(ENC_RAD[2]); LogPrint("  "); LogPrint(ENC_RAD[3]); LogPrint(" ) , ( ");
+        LogPrint(ENC_RADS[0]); LogPrint("  "); LogPrint(ENC_RADS[1]); LogPrint("  ");
+        LogPrint(ENC_RADS[2]); LogPrint("  "); LogPrint(ENC_RADS[3]); LogPrint(" )\n");
+        #endif
+        #endif
 
 
         xSemaphoreTake(Task_Sensitive_Semaphore,SensitiveDelay/portTICK_PERIOD_MS);

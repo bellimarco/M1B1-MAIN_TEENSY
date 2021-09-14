@@ -220,7 +220,7 @@ void vTask_SerialComm(void* arg) {
                         }
 
                         #ifdef Log_GcodeMonitoring
-                        LogPrintln("SerialComm/ Executing: "+Targ->gcode_string);
+                        LogPrintln("SerialComm/ Executing: "+String((int)Targ)+", "+Targ->gcode_string2);
                         #endif
                     }
                 }else{
@@ -242,7 +242,7 @@ void vTask_SerialComm(void* arg) {
                 #endif
 
                 #ifdef Log_GcodeMonitoring
-                LogPrintln("SerialComm/ Executed: "+Targ->gcode_string);
+                LogPrintln("SerialComm/ Executed: "+String((int)Targ)+", "+Targ->gcode_string2);
                 #endif
                 
                 //relay to the esp the executed code

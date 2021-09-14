@@ -115,13 +115,11 @@ class MotionBlock{
         params = p; Cstart = c;
         LastStatus = BLOCKSTATUS_RUNNING;
 
-        #ifdef Log_GcodeLifeCycle
         block_string = BLOCK_DICT[id];
         block_string += (params->b0 != BYTENOTDEF)?", "+String(params->b0):", /";
         block_string += (params->b1 != BYTENOTDEF)?", "+String(params->b1):", /";
         block_string += (params->f0 != FLOATNOTDEF)?", "+FloatToString(params->f0):", /";
         block_string += (params->f1 != FLOATNOTDEF)?", "+FloatToString(params->f1):", /";
-        #endif
     }
 };
 
