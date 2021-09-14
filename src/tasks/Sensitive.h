@@ -29,7 +29,7 @@ void vTask_Sensitive(void* arg) {
     bool VIBR_trigg[VIBRsensors];
     for(byte i=0; i<VIBRsensors; i++){ VIBR_T[i] = 0; VIBR_trigg[i] = false; }
 
-    //Encoders, joint angle value and speed in radians, not homed
+    //Encoders, joint angle and speed value in radians, not homed
     float ENC_RAD[MotorNumber];
     float ENC_RADS[MotorNumber];
     for(byte i=0; i<MotorNumber; i++){ ENC_RAD[i] = 0; ENC_RADS[i] = 0; }
@@ -62,10 +62,10 @@ void vTask_Sensitive(void* arg) {
         ENCupdate(ENC_RAD,ENC_RADS);
         #endif
 
-        // LogPrint(ENC_RAD[0]); LogPrint("\t"); LogPrint(ENC_RAD[1]); LogPrint("\t");
-        // LogPrint(ENC_RAD[2]); LogPrint("\t"); LogPrint(ENC_RAD[3]); LogPrint("\t");
-        // LogPrint(ENC_RADS[0]); LogPrint("\t"); LogPrint(ENC_RADS[1]); LogPrint("\t");
-        // LogPrint(ENC_RADS[2]); LogPrint("\t"); LogPrint(ENC_RADS[3]); LogPrint("\n");
+        LogPrint(ENC_RAD[0]); LogPrint("\t"); LogPrint(ENC_RAD[1]); LogPrint("\t");
+        LogPrint(ENC_RAD[2]); LogPrint("\t"); LogPrint(ENC_RAD[3]); LogPrint("\t");
+        LogPrint(ENC_RADS[0]); LogPrint("\t"); LogPrint(ENC_RADS[1]); LogPrint("\t");
+        LogPrint(ENC_RADS[2]); LogPrint("\t"); LogPrint(ENC_RADS[3]); LogPrint("\n");
 
 
         xSemaphoreTake(Task_Sensitive_Semaphore,SensitiveDelay/portTICK_PERIOD_MS);

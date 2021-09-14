@@ -11,8 +11,8 @@ SemaphoreHandle_t  Task_Sensitive_Semaphore = xSemaphoreCreateCounting(3,0);
 SemaphoreHandle_t  Task_Actuating_Semaphore = xSemaphoreCreateCounting(3,0);
 //loop delays for each task
 #define SerialCommDelay 100
-#define SensitiveDelay 10
-#define ActuatingDelay 25
+#define SensitiveDelay 100
+#define ActuatingDelay 50
 //Task defining files
 #include <tasks/Actuating.h>
 #include <tasks/Sensitive.h>
@@ -31,10 +31,10 @@ void setup() {
     SerialGcode.begin(115200);
     
     #ifdef USE_TEENSY1
-    SerialT1.begin(800000);
+    SerialT1.begin(INTER_TEENSY_BAUDRATE);
     #endif
     #ifdef USE_TEENSY2
-    SerialT2.begin(800000);
+    SerialT2.begin(INTER_TEENSY_BAUDRATE);
     #endif
 
     #ifdef Log
@@ -96,7 +96,7 @@ void setup() {
     #ifdef USE_VIBR
     VIBRsetup();
     #endif
-    #ifdef USE_VIBR
+    #ifdef USE_ENC
     ENCsetup();
     #endif
 

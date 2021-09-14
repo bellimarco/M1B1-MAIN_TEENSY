@@ -17,6 +17,7 @@ uint32_t Ping_t = 0;
 bool MotorDriversEnabled = false;
 void MotorDriversEnable(){
     MotorDriversEnabled = true;
+    LogPrintln("//  Motor Drivers Enabled");
     #ifdef USE_MOTORS
     digitalWrite(DRIVE_EN1_pin,HIGH);
     digitalWrite(DRIVE_EN2_pin,HIGH);
@@ -26,6 +27,7 @@ void MotorDriversEnable(){
 }
 void MotorDriversDisable(){
     MotorDriversEnabled = false;
+    LogPrintln("//  Motor Drivers Disabled");
     #ifdef USE_MOTORS
     digitalWrite(DRIVE_EN1_pin,LOW);
     digitalWrite(DRIVE_EN2_pin,LOW);
@@ -58,14 +60,14 @@ void UpdateBatteryCharge(){
         if(!BatteryEmpty){
             BatteryEmpty = true;
 
+            LogPrintln("//  Battery Empty, Disabling Motor Drivers");
             MotorDriversDisable();
-            LogPrintln("Battery Empty, Motor Drivers Disabled");
         }
     }
     else if(BatteryCharge < 0.1){
-        LogPrintln("Battery Charge Very Low");
+        LogPrintln("//  Battery Charge Very Low");
     }else if(BatteryCharge < 0.25){
-        LogPrintln("Battery Charge Low");
+        LogPrintln("//  Battery Charge Low");
     }
 
 
@@ -77,6 +79,8 @@ void UpdateBatteryCharge(){
 
 
 
+//baudrate on teensy 1 and 2 serial ports
+#define INTER_TEENSY_BAUDRATE 800000
 
 //how many motors, a bit vague but anyways useful throughout
 //if this is changed, remember considering:

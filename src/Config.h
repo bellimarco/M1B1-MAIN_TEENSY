@@ -7,16 +7,16 @@
 
 //#define USE_ESP       //if a esp8266 is used, if not teensy is controlled by usb serial monitor
 
-//#define USE_TEENSY1      //right body parts control
+#define USE_TEENSY1      //right body parts control
 //#define USE_TEENSY2      //left body parts control
 
-//#define USE_MOTORS  //if motor drivers can be turned on, and will be at setup
+//#define USE_MOTORS    //if motor drivers can be turned on, and will be at setup
 
 //enabled sensors
 //#define USE_IMU          //inertial measurment unit
 //#define USE_TOF          //time of flight sensor
 //#define USE_VIBR         //vibration sensor
-//#define USE_ENC          //magnetic encoders, useful only if teensy 1 or 2 are also enabled
+#define USE_ENC          //magnetic encoders, useful only if teensy 1 or 2 are also enabled
 
 
 
@@ -63,7 +63,7 @@ bool Log_ = true;   //controllable variable to turn on off the serial log
     #define Log_SerialGcodeEcho     //echo messages on the SerialGcode channel
     #define Log_GcodeMonitoring     //various noteworthy gcode events in the SerialComm task
     #define Log_GcodeLifeCycle      //detailed events about the actual GTargets and MotionBlocks
-    #define Log_SerialCommPing      //pings the serial port periodically from the SerialComm task
+    //#define Log_SerialCommPing      //pings the serial port periodically from the SerialComm task
     #define Log_IMUsetup    //setup process of imu
 #endif
 
