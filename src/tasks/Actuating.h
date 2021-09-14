@@ -4,7 +4,7 @@ void SendMotorControl(MotorControlStruct C){
     #ifdef Log_GcodeLifeCycle
     String s = "GCycle/ MotorTarg: ";
     for(uint8_t i=0; i<MotorNumber; i++){
-        s += "("+String(i)+","+String(C.mode[i])+","+String((int32_t)(C.val[i]*1e3))+")";
+        s += "("+String(i)+","+(C.mode[i]?"ps":"tq")+","+FloatToString(C.val[i])+")";
     }
     LogPrintln(s);
     #endif
@@ -164,6 +164,11 @@ void LastBlocksPush(MotionBlock* b){
     if(LastBlocks[LastBlocksTail] != MOTIONBLOCK_NOTDEF){
         DisposeMotionBlock(LastBlocks[LastBlocksTail]);
     }
+    #ifdef Log_GcodeLifeCycle
+    else{
+        LogPrintln("GCycle/ MotionBlock not disposed, LastBlocks isn't full");
+    }
+    #endif
     LastBlocks[LastBlocksTail] = b;
     LastBlocksTail = (LastBlocksTail+1<LastBlocksLength)?LastBlocksTail+1:0;
 }

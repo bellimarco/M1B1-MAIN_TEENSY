@@ -20,3 +20,17 @@ int freeMemory() {
   return __brkval ? &top - __brkval : &top - __malloc_heap_start;
 #endif  // __arm__
 }
+
+
+
+String FloatToString(float f, uint8_t b = 2){
+    float fpowerDec = f;
+    int32_t fpowerInt = (int32_t) f;
+    uint8_t power = 0;
+    while(power<b){ fpowerDec*=10; fpowerInt*=10; power++; }
+    String s = String((int32_t) f);
+    s += ".";
+    s += String( ((int32_t) fpowerDec) - fpowerInt );
+
+    return s;
+}

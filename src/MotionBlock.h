@@ -119,8 +119,8 @@ class MotionBlock{
         block_string = BLOCK_DICT[id];
         block_string += (params->b0 != BYTENOTDEF)?", "+String(params->b0):", /";
         block_string += (params->b1 != BYTENOTDEF)?", "+String(params->b1):", /";
-        block_string += (params->f0 != FLOATNOTDEF)?", "+String(params->f0):", /";
-        block_string += (params->f1 != FLOATNOTDEF)?", "+String(params->f1):", /";
+        block_string += (params->f0 != FLOATNOTDEF)?", "+FloatToString(params->f0):", /";
+        block_string += (params->f1 != FLOATNOTDEF)?", "+FloatToString(params->f1):", /";
         #endif
     }
 };
@@ -149,7 +149,7 @@ void DisposeMotionBlock(MotionBlock* b){
 //MOVEJOINT
 MotorControlStruct MotionBlock::MotorController_MOVEJOINT(Cspace* C){
     MotorControlStruct cntrl = {{0,0,0,0,0,0,0,0},{0,0,0,0,0,0,0,0}};
-    cntrl.val[params->b0] = params->b1;
+    cntrl.mode[params->b0] = params->b1;
     cntrl.val[params->b0] = params->f1;
     return cntrl;
 }
