@@ -20,8 +20,6 @@
 
 
 
-//DEBUG 
-//#define TeensySlaves_SendTest    //sending in the actuating task loop testing data to the teensy
 
 
 //CONDITIONALS CONFIGS
@@ -60,14 +58,18 @@ bool Log_ = true;   //controllable variable to turn on off the serial log
 
 //Log subconfigs
 #ifdef Log
+    //#define Log_SerialCommPing      //pings the serial port periodically from the SerialComm task
     #define Log_SerialGcodeEcho     //echo messages on the SerialGcode channel
     #define Log_GcodeMonitoring     //various noteworthy gcode events in the SerialComm task
     #define Log_GcodeLifeCycle      //detailed events about the actual GTargets and MotionBlocks
-    //#define Log_SerialCommPing      //pings the serial port periodically from the SerialComm task
+    #define Log_SendMotorControl    //any motorcontrol sent to the teensies is logged
     #define Log_IMUsetup    //setup process of imu
     #define Log_ENCdata     //in the sensesitive task loop, print live encoder values
 #endif
 
+
+//DEBUG 
+//#define TeensySlaves_SendTest    //sending in the actuating task loop testing data to the teensy
 
 
 

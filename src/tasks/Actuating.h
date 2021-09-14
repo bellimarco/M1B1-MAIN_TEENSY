@@ -1,8 +1,8 @@
 
 //send to teensies the motorcontrol variable
 void SendMotorControl(MotorControlStruct C){
-    #ifdef Log_GcodeLifeCycle
-    String s = "GCycle/ MotorTarg: ";
+    #ifdef Log_SendMotorControl
+    String s = "SendMotorControl: ";
     for(uint8_t i=0; i<MotorNumber; i++){
         s += "("+String(i)+","+(C.mode[i]?"ps":"tq")+","+FloatToString(C.val[i])+")";
     }
@@ -333,10 +333,10 @@ void vTask_Actuating(void* arg) {
         #ifdef TeensySlaves_SendTest
         //test sending targets
         for(byte i=0; i<MotorNumber; i++){
-            MotorControlTarget[i] += 0.1*(i+1);
-            MotorModeTarget[i] = !MotorModeTarget[i];
+            MotorControlTarget.val[i] += 0.1*(i+1);
+            MotorControlTarget.mode[i] = !MotorControlTarget.mode[i];
         }
-        SendMotorTarget(MotorControlTarget,MotorModeTarget);
+        SendMotorControl(MotorControlTarget);
         #endif
 
 
