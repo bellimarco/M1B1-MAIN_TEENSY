@@ -85,7 +85,7 @@ bool Log_ = true;   //controllable variable to turn on off the serial log
 #include <utils/LinAlgebra.h>
 #include <utils/PWMReader.h>
 
-
+#include <JointStructure.h>
 #include <Globals.h>
 #include <Gcode.h>
 #include <MotionBlock.h>

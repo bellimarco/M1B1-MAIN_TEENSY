@@ -38,7 +38,9 @@ void MotorDriversDisable(){
 
 
 
-//battery management
+
+
+//BATTERY MANAGEMENT
 //battery reading is managed by SerialComm
 //ControlCode 2 prints battery charge to the serial Log port
 
@@ -79,6 +81,11 @@ void UpdateBatteryCharge(){
 
 
 
+
+
+
+//MOTOR CONTROL AND INTERTEENSY COMMUNCATION
+
 //baudrate on teensy 1 and 2 serial ports
 #define INTER_TEENSY_BAUDRATE 800000
 
@@ -116,14 +123,41 @@ MotorControlStruct MOTORCONTROL_NOTDEF = MotorControlStruct{
 
 
 
+
+
+
+
+//SENSITIVE TASK AND ROBOT DIGITAL MODEL STUFF
+
 #define TOFsensors 4
 #define VIBRsensors 2
 
+//robot structure constants, in standard units
+const float Tibia = 0.02;
+const float Femur = 0.02;
+const float HipRad = 0.01;
+const float Hip1Height = 0.005;
+const float Hip2Height = 0.005;
 
+//displacement from knee origin to foot position, in knee frame
+const float Dk_foot[3] = {0,0,Tibia};
 
 
 class Cspace{
     public:
+    //centre of mass properties in S frame
+    //linear position, velocity, acceleration
+    float P[3] = {0,0,0};
+    float V[3] = {0,0,0};
+    float DV[3] = {0,0,0};
+    //angular difference, velocity, acceleration
+    float A[3] = {0,0,0};
+    float W[3] = {0,0,0};
+    float DW[3] = {0,0,0};
+
+    //robot joints in COM frame, i.e. indipendent of the above properties
+    float Tb_com[4][4] = {{0,0,0,0},{0,0,0,0},{0,0,0,0},{0,0,0,0}};
+    JointStructure Joints = JointStructure();
 
 
     Cspace(){
